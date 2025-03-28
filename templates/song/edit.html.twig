@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier un morceau{% endblock %}
+
+{% block body %}
+    <div class="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Modifier {{ song.title }}</h1>
+
+        {{ form_start(form) }}
+            <div class="grid gap-4">
+                {{ form_row(form.title) }}
+                {{ form_row(form.lyrics) }}
+                {{ form_row(form.isDuo) }}
+                {{ form_row(form.isDownloaded) }}
+                {{ form_row(form.hasLyrics) }}
+                {{ form_row(form.person) }}
+                {{ form_row(form.userSongKnowledge) }}
+            </div>
+
+            <div class="mt-6">
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                    Mettre à jour
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
