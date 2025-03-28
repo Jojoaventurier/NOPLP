@@ -11,7 +11,25 @@
         {% block javascripts %}
         {% endblock %}
     </head>
-    <body>
-        {% block body %}{% endblock %}
+    <body class="bg-gray-100">
+
+        <!-- Barre de navigation -->
+        <nav class="bg-gray-800 text-white p-4">
+            <div class="container mx-auto flex justify-between items-center">
+                <a href="{{ path('app_home') }}" class="text-lg font-bold">🎵 NOPLP</a>
+                <ul class="flex space-x-4">
+                    <li><a href="{{ path('app_home') }}" class="hover:underline">Accueil</a></li>
+                    <li><a href="{{ path('app_song') }}" class="hover:underline">Morceaux</a></li>
+                    <li><a href="#" class="hover:underline">À propos</a></li>
+                    <li><a href="#" class="hover:underline">Contact</a></li>
+                </ul>
+            </div>
+        </nav>
+    
+        <!-- Contenu de la page -->
+        <div class="container mx-auto mt-8 p-4 bg-white shadow-lg rounded-lg">
+            {% block body %}{% endblock %}
+        </div>
+    
     </body>
 </html>

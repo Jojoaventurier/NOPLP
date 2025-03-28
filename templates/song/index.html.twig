@@ -1,6 +1,28 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello SongController!{% endblock %}
+{% block title %}NOPLP - Liste des morceaux{% endblock %}
 
 {% block body %}
+    <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">🎶 Liste des morceaux</h1>
+
+        {% if songs is not empty %}
+            <ul class="divide-y divide-gray-200">
+                {% for song in songs %}
+                    <li class="py-4 flex items-center justify-between">
+                        <div>
+                            <p class="text-lg font-semibold text-gray-900">{{ song.title }}</p>
+                            <p class="text-gray-600">Interprète : {{ song.artist }}</p>
+                        </div>
+                        <a href="{{ path('app_song_show', {id: song.id}) }}" 
+                           class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                            Détails
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-500 text-center mt-4">Aucun morceau trouvé.</p>
+        {% endif %}
+    </div>
 {% endblock %}
