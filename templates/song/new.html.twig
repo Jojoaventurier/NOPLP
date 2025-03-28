@@ -6,22 +6,25 @@
     <div class="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
         <h1 class="text-2xl font-bold text-gray-800 mb-6">Ajouter un morceau</h1>
 
-        {{ form_start(form) }}
-            <div class="grid gap-4">
-                {{ form_row(form.title) }}
-                {{ form_row(form.lyrics) }}
-                {{ form_row(form.isDuo) }}
-                {{ form_row(form.isDownloaded) }}
-                {{ form_row(form.hasLyrics) }}
-                {{ form_row(form.person) }}
-                {{ form_row(form.userSongKnowledge) }}
-            </div>
-
-            <div class="mt-6">
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                    Enregistrer
-                </button>
-            </div>
-        {{ form_end(form) }}
+        {{ form_start(form, { attr: { class: 'space-y-6' } }) }}
+        <div class="grid gap-4">
+            {% for field in [form.title, form.lyrics, form.person, form.userSongKnowledge] %}
+                <div>
+                    {{ form_label(field, null, { attr: { class: 'block text-sm font-semibold text-gray-700' } }) }}
+                    {{ form_widget(field, { attr: { class: 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500' } }) }}
+                    {{ form_errors(field, { attr: { class: 'text-red-500 text-sm' } }) }}
+                </div>
+            {% endfor %}
+    
+            {% for field in [form.isDuo, form.isDownloaded, form.hasLyrics] %}
+                <div class="flex items-center gap-2">
+                    {{ form_widget(field, { attr: { class: 'rounded text-blue-600 focus:ring-blue-500' } }) }}
+                    {{ form_label(field, null, { attr: { class: 'text-sm text-gray-700' } }) }}
+                    {{ form_errors(field, { attr: { class: 'text-red-500 text-sm' } }) }}
+                </div>
+            {% endfor %}
+        </div>
+    
+    {{ form_end(form) }}
     </div>
 {% endblock %}

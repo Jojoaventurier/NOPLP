@@ -5,6 +5,11 @@
 {% block body %}
     <div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">🎶 Liste des morceaux</h1>
+        <div class="flex justify-center">
+            <a href="{{ path('app_song_new') }}" class="border p-2 rounded mb-4">
+                Ajouter un morceau
+            </a>
+        </div>
 
         {% if songs is not empty %}
             <div class="overflow-x-auto">
