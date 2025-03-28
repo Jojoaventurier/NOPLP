@@ -3,24 +3,51 @@
 {% block title %}NOPLP - Liste des morceaux{% endblock %}
 
 {% block body %}
-    <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg">
+    <div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">🎶 Liste des morceaux</h1>
 
         {% if songs is not empty %}
-            <ul class="divide-y divide-gray-200">
-                {% for song in songs %}
-                    <li class="py-4 flex items-center justify-between">
-                        <div>
-                            <p class="text-lg font-semibold text-gray-900">{{ song.title }}</p>
-                            <p class="text-gray-600">Interprète : {{ song.artist }}</p>
-                        </div>
-                        <a href="{{ path('app_song_show', {id: song.id}) }}" 
-                           class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                            Détails
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
+            <div class="overflow-x-auto">
+                <table class="min-w-full border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-700 uppercase text-sm">
+                            <th class="border px-4 py-2">Titre</th>
+                            {# <th class="border px-4 py-2">Paroles</th> #}
+                            <th class="border px-4 py-2">Téléchargé</th>
+                            <th class="border px-4 py-2">Paroles dispos</th>
+                            <th class="border px-4 py-2">Interprète(s)</th>
+                            <th class="border px-4 py-2">Connaissance</th>
+                            <th class="border px-4 py-2">Modifier</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for song in songs %}
+                            <tr class="border hover:bg-gray-100">
+                                <td class="border px-4 py-2">{{ song.title ?: 'Non renseigné' }}</td>
+                                {# <td class="border px-4 py-2">{{ song.lyrics ? '✅' : '❌' }}</td> #}
+                                <td class="border px-4 py-2 text-center">{{ song.isDownloaded ? '📥 Oui' : '❌ Non' }}</td>
+                                <td class="border px-4 py-2 text-center">{{ song.hasLyrics ? '📜 Oui' : '❌ Non' }}</td>
+                                <td class="border px-4 py-2">
+                                    {% for person in song.person %}
+                                        {{ person.name }}{% if not loop.last %}, {% endif %}
+                                    {% else %}
+                                        <span class="text-gray-400">Aucun</span>
+                                    {% endfor %}
+                                </td>
+                                <td class="border px-4 py-2">
+                                    🎤 {{ song.userSongKnowledge ? song.userSongKnowledge.name : 'Non évalué' }}
+                                </td>
+                                <td class="border px-4 py-2 text-center">
+                                    <a href="{{ path('app_song_show', {id: song.id}) }}" 
+                                       class="px-3 py-1 bg-red-500 text-white rounded hover:bg-blue-800 transition">
+                                        Modifier
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% else %}
             <p class="text-gray-500 text-center mt-4">Aucun morceau trouvé.</p>
         {% endif %}
