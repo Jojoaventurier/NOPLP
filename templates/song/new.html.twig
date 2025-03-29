@@ -16,7 +16,7 @@
                 </div>
             {% endfor %}
     
-            {% for field in [form.isDuo, form.isDownloaded, form.hasLyrics] %}
+            {% for field in [form.isDownloaded, form.hasLyrics] %}
                 <div class="flex items-center gap-2">
                     {{ form_widget(field, { attr: { class: 'rounded text-blue-600 focus:ring-blue-500' } }) }}
                     {{ form_label(field, null, { attr: { class: 'text-sm text-gray-700' } }) }}

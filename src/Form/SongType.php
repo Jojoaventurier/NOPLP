@@ -29,10 +29,6 @@ class SongType extends AbstractType
                 'required' => false,
                 'attr' => ['class' => 'form-textarea', 'rows' => 4],
             ])
-            ->add('isDuo', CheckboxType::class, [
-                'label' => 'Duo ?',
-                'required' => false,
-            ])
             ->add('isDownloaded', CheckboxType::class, [
                 'label' => 'Téléchargé ?',
                 'required' => false,
@@ -55,6 +51,7 @@ class SongType extends AbstractType
                 'placeholder' => 'Sélectionner une connaissance',
                 'label' => 'Connaissance utilisateur',
                 'attr' => ['class' => 'form-select'],
+                'required' => false,
             ])
             ->add('save', SubmitType::class, [
                 'label' => 'Enregistrer',
