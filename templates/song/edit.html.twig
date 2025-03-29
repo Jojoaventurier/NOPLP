@@ -6,21 +6,57 @@
     <div class="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
         <h1 class="text-2xl font-bold text-gray-800 mb-6">Modifier {{ song.title }}</h1>
 
-        {{ form_start(form) }}
-            <div class="grid gap-4">
-                {{ form_row(form.title) }}
-                {{ form_row(form.lyrics) }}
-                {{ form_row(form.isDownloaded) }}
-                {{ form_row(form.hasLyrics) }}
-                {{ form_row(form.person) }}
-                {{ form_row(form.userSongKnowledge) }}
+        {{ form_start(form, { attr: { class: 'space-y-6' } }) }}
+        <div class="grid gap-4">
+            {{ form_row(form.title, { attr: { id: form.title.vars.id } }) }}
+            
+            <div class="flex items-center gap-2">
+                {{ form_widget(form.isDownloaded, { id: form.isDownloaded.vars.id, attr: { class: 'peer hidden' } }) }}
+                <label for="{{ form.isDownloaded.vars.id }}" class="cursor-pointer text-sm text-gray-700 peer-checked:text-blue-600">
+                    {{ form.isDownloaded.vars.label }}
+                </label>
+                {% if form.isDownloaded.vars.errors|length > 0 %}
+                    <p class="text-red-500 text-sm">{{ form_errors(form.isDownloaded) }}</p>
+                {% endif %}
             </div>
 
-            <div class="mt-6">
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                    Mettre à jour
-                </button>
-            </div>
+            {{ form_row(form.person, { attr: { id: form.person.vars.id, class: 'artist-search' } }) }}
+            {{ form_row(form.newPerson, { attr: { id: form.newPerson.vars.id, disabled: true } }) }}
+            {{ form_row(form.userSongKnowledge, { attr: { id: form.userSongKnowledge.vars.id } }) }}
+        </div>
+
+        <!-- Bouton pour ajouter un nouvel interprète -->
+        <button type="button" id="toggleNewArtist" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">
+            Ajouter un nouvel interprète
+        </button>
+
+        <div class="mt-6">
+            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                Mettre à jour
+            </button>
+        </div>
         {{ form_end(form) }}
     </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleButton = document.getElementById("toggleNewArtist");
+        const selectArtist = document.getElementById("{{ form.person.vars.id }}");
+        const newArtistInput = document.getElementById("{{ form.newPerson.vars.id }}");
+
+        toggleButton.addEventListener("click", function () {
+            if (newArtistInput.disabled) {
+                newArtistInput.disabled = false;
+                selectArtist.disabled = true;
+                newArtistInput.focus();
+                toggleButton.textContent = "Réutiliser un interprète existant";
+            } else {
+                newArtistInput.disabled = true;
+                selectArtist.disabled = false;
+                newArtistInput.value = ""; // Efface l'entrée
+                toggleButton.textContent = "Ajouter un nouvel interprète";
+            }
+        });
+    });
+    </script>
 {% endblock %}

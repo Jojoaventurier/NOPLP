@@ -45,7 +45,7 @@
                                 <td class="border px-4 py-2 text-center">{{ song.isDownloaded ? '📥 Oui' : '❌ Non' }}</td>
                                 <td class="border px-4 py-2 text-center">{{ song.hasLyrics ? '📜 Oui' : '❌ Non' }}</td>
                                 <td class="border px-4 py-2">
-                                    🎤 {{ song.userSongKnowledge ? song.userSongKnowledge.name : 'Non évalué' }}
+                                    🎤 {{ song.userSongKnowledge ? song.userSongKnowledge : 'Non évalué' }}
                                 </td>
                                 <td class="border px-4 py-2 text-center space-x-1">
                                     <a href="{{ path('app_song_show', {id: song.id}) }}" 
