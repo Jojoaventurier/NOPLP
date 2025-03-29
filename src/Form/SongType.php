@@ -42,18 +42,8 @@ class SongType extends AbstractType
                 'mapped' => false,
                 'required' => false,
             ])
-            ->add('lyrics', TextareaType::class, [
-                'label' => 'Paroles',
-                'required' => false,
-                'attr' => ['class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500', 'rows' => 4],
-            ])
             ->add('isDownloaded', CheckboxType::class, [
                 'label' => 'Téléchargé ?',
-                'required' => false,
-                'attr' => ['class' => 'rounded text-blue-600 focus:ring-blue-500'],
-            ])
-            ->add('hasLyrics', CheckboxType::class, [
-                'label' => 'Paroles disponibles ?',
                 'required' => false,
                 'attr' => ['class' => 'rounded text-blue-600 focus:ring-blue-500'],
             ])
