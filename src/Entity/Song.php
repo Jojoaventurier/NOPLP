@@ -37,8 +37,8 @@ class Song
     #[ORM\ManyToMany(targetEntity: Person::class, inversedBy: 'songs')]
     private Collection $person;
 
-    #[ORM\ManyToOne(inversedBy: 'songs')]
-    private ?UserSongKnowledge $userSongKnowledge = null;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $userSongKnowledge = null;
 
     public function __construct()
     {
@@ -134,13 +134,17 @@ class Song
         return $this;
     }
 
-    public function getUserSongKnowledge(): ?UserSongKnowledge
+    public function getUserSongKnowledge(): ?int
     {
         return $this->userSongKnowledge;
     }
 
-    public function setUserSongKnowledge(?UserSongKnowledge $userSongKnowledge): static
+    public function setUserSongKnowledge(?int $userSongKnowledge): static
     {
+        if ($userSongKnowledge !== null && ($userSongKnowledge < 1 || $userSongKnowledge > 5)) {
+            throw new \InvalidArgumentException('La connaissance des paroles doit être entre 1 et 5.');
+        }
+
         $this->userSongKnowledge = $userSongKnowledge;
 
         return $this;

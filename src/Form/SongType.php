@@ -2,17 +2,19 @@
 
 namespace App\Form;
 
-use App\Entity\Person;
 use App\Entity\Song;
+use App\Entity\Person;
 use App\Entity\UserSongKnowledge;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 
 class SongType extends AbstractType
 {
@@ -38,7 +40,7 @@ class SongType extends AbstractType
             ])
             ->add('newPerson', TextType::class, [
                 'label' => 'Ajouter un nouvel interprète',
-                'attr' => ['placeholder' => 'Nom du nouvel interprète', 'class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500'],
+                'attr' => ['placeholder' => 'Ajouter un nouvel interprète', 'class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500'],
                 'mapped' => false,
                 'required' => false,
             ])
@@ -47,11 +49,16 @@ class SongType extends AbstractType
                 'required' => false,
                 'attr' => ['class' => 'rounded text-blue-600 focus:ring-blue-500'],
             ])
-            ->add('userSongKnowledge', EntityType::class, [
-                'class' => UserSongKnowledge::class,
-                'choice_label' => 'name',
-                'placeholder' => 'Sélectionner une connaissance',
-                'label' => 'Connaissance utilisateur',
+            ->add('userSongKnowledge', ChoiceType::class, [
+                'choices' => [
+                    '1 - Très faible' => 1,
+                    '2 - Faible' => 2,
+                    '3 - Moyen' => 3,
+                    '4 - Bon' => 4,
+                    '5 - Excellent' => 5,
+                ],
+                'placeholder' => 'Sélectionner un niveau de connaissance',
+                'label' => 'Connaissance des paroles',
                 'attr' => ['class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500'],
                 'required' => false,
             ])
