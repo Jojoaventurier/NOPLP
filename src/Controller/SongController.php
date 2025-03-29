@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Song;
+use App\Entity\Person;
 use App\Form\SongType;
 use App\Repository\SongRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,6 +40,25 @@ final class SongController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Récupération de l'ID de l'artiste sélectionné et du nouveau nom éventuel
+            $personId = $request->request->get('person');
+            $newPersonName = $request->request->get('newPerson');
+
+            if ($personId) {
+                // Récupération de l'artiste existant
+                $person = $entityManager->getRepository(Person::class)->find($personId);
+            } elseif ($newPersonName) {
+                // Création d'un nouvel artiste si non trouvé
+                $person = new Person();
+                $person->setName($newPersonName);
+                $entityManager->persist($person);
+            }
+
+            // Ajout de l'artiste à la chanson si trouvé ou créé
+            if (isset($person)) {
+                $song->addPerson($person);
+            }
+
             $entityManager->persist($song);
             $entityManager->flush();
 
