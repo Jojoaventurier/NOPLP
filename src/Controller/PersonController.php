@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Person;
 use App\Repository\PersonRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -19,17 +21,24 @@ final class PersonController extends AbstractController
         ]);
     }
 
-    #[Route('/search/person', name: 'search_person', methods: ['GET'])]
-    public function search(Request $request, PersonRepository $personRepository): JsonResponse
+    #[Route('/search/person', name: 'app_person_search')]
+    public function search(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $query = $request->query->get('q');
-        $persons = $personRepository->createQueryBuilder('p')
-            ->where('p.name LIKE :name')
-            ->setParameter('name', "%$query%")
+        $query = $request->query->get('q', '');
+    
+        $persons = $entityManager->getRepository(Person::class)
+            ->createQueryBuilder('p')
+            ->where('p.name LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
-
-        return $this->json(array_map(fn($p) => ['id' => $p->getId(), 'text' => $p->getName()], $persons));
+    
+        $results = array_map(fn($person) => [
+            'id' => $person->getId(),
+            'name' => $person->getName(),
+        ], $persons);
+    
+        return new JsonResponse($results);
     }
 }

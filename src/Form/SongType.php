@@ -22,43 +22,47 @@ class SongType extends AbstractType
             ->add('title', TextType::class, [
                 'label' => 'Titre du morceau',
                 'required' => true,
-                'attr' => ['class' => 'form-input'],
+                'attr' => ['class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500'],
             ])
-            ->add('person', TextType::class, [
+            ->add('person', EntityType::class, [
+                'class' => Person::class,
+                'choice_label' => 'name',
+                'multiple' => true,  
+                'expanded' => false, 
                 'label' => 'Interprètes',
                 'attr' => [
                     'class' => 'artist-search',
-                    'placeholder' => 'Recherchez un interprète...',
-                    'autocomplete' => 'off'
+                    'data-placeholder' => 'Recherchez un ou plusieurs interprètes...',
                 ],
-                'mapped' => false, // Ce champ sera traité manuellement
                 'required' => false
             ])
             ->add('newPerson', TextType::class, [
                 'label' => 'Ajouter un nouvel interprète',
-                'attr' => ['placeholder' => 'Nom du nouvel interprète'],
+                'attr' => ['placeholder' => 'Nom du nouvel interprète', 'class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500'],
                 'mapped' => false,
-                'required' => false
+                'required' => false,
             ])
             ->add('lyrics', TextareaType::class, [
                 'label' => 'Paroles',
                 'required' => false,
-                'attr' => ['class' => 'form-textarea', 'rows' => 4],
+                'attr' => ['class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500', 'rows' => 4],
             ])
             ->add('isDownloaded', CheckboxType::class, [
                 'label' => 'Téléchargé ?',
                 'required' => false,
+                'attr' => ['class' => 'rounded text-blue-600 focus:ring-blue-500'],
             ])
             ->add('hasLyrics', CheckboxType::class, [
                 'label' => 'Paroles disponibles ?',
                 'required' => false,
+                'attr' => ['class' => 'rounded text-blue-600 focus:ring-blue-500'],
             ])
             ->add('userSongKnowledge', EntityType::class, [
                 'class' => UserSongKnowledge::class,
-                'choice_label' => 'name',  // Utiliser un label plus lisible
+                'choice_label' => 'name',
                 'placeholder' => 'Sélectionner une connaissance',
                 'label' => 'Connaissance utilisateur',
-                'attr' => ['class' => 'form-select'],
+                'attr' => ['class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500'],
                 'required' => false,
             ])
             ->add('save', SubmitType::class, [

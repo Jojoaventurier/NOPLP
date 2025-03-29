@@ -40,29 +40,27 @@ final class SongController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Récupération de l'ID de l'artiste sélectionné et du nouveau nom éventuel
-            $personId = $request->request->get('person');
-            $newPersonName = $request->request->get('newPerson');
+            $personIds = $request->request->all('song')['persons'] ?? [];
+            $newPersonName = $form->get('newPerson')->getData();
 
-            if ($personId) {
-                // Récupération de l'artiste existant
-                $person = $entityManager->getRepository(Person::class)->find($personId);
-            } elseif ($newPersonName) {
-                // Création d'un nouvel artiste si non trouvé
-                $person = new Person();
-                $person->setName($newPersonName);
-                $entityManager->persist($person);
+            // Récupération des interprètes sélectionnés
+            $persons = $entityManager->getRepository(Person::class)->findBy(['id' => $personIds]);
+
+            if ($newPersonName) {
+                $newPerson = new Person();
+                $newPerson->setName($newPersonName);
+                $entityManager->persist($newPerson);
+                $persons[] = $newPerson; // Ajouter le nouvel interprète
             }
 
-            // Ajout de l'artiste à la chanson si trouvé ou créé
-            if (isset($person)) {
+            foreach ($persons as $person) {
                 $song->addPerson($person);
             }
 
             $entityManager->persist($song);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_song'); // Redirection vers la liste des morceaux
+            return $this->redirectToRoute('app_song');
         }
 
         return $this->render('song/new.html.twig', [
