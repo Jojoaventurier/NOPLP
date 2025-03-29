@@ -73,13 +73,35 @@ final class SongController extends AbstractController
     {
         $form = $this->createForm(SongType::class, $song);
         $form->handleRequest($request);
-
+    
         if ($form->isSubmitted() && $form->isValid()) {
+            // Récupération du champ non mappé pour ajouter un nouvel artiste
+            $newPersonName = $form->get('newPerson')->getData();
+    
+            if (!empty($newPersonName)) {
+                // Vérifier si l'artiste existe déjà en base
+                $existingPerson = $entityManager->getRepository(Person::class)->findOneBy(['name' => $newPersonName]);
+    
+                if (!$existingPerson) {
+                    // Créer et enregistrer un nouvel artiste
+                    $newPerson = new Person();
+                    $newPerson->setName($newPersonName);
+                    $entityManager->persist($newPerson);
+                } else {
+                    $newPerson = $existingPerson;
+                }
+    
+                // Ajouter l'artiste sans écraser ceux existants
+                if (!$song->getPerson()->contains($newPerson)) {
+                    $song->addPerson($newPerson);
+                }
+            }
+    
             $entityManager->flush();
-
+    
             return $this->redirectToRoute('app_song');
         }
-
+    
         return $this->render('song/edit.html.twig', [
             'form' => $form->createView(),
             'song' => $song,
