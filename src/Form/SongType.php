@@ -24,6 +24,22 @@ class SongType extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-input'],
             ])
+            ->add('person', TextType::class, [
+                'label' => 'Interprètes',
+                'attr' => [
+                    'class' => 'artist-search',
+                    'placeholder' => 'Recherchez un interprète...',
+                    'autocomplete' => 'off'
+                ],
+                'mapped' => false, // Ce champ sera traité manuellement
+                'required' => false
+            ])
+            ->add('newPerson', TextType::class, [
+                'label' => 'Ajouter un nouvel interprète',
+                'attr' => ['placeholder' => 'Nom du nouvel interprète'],
+                'mapped' => false,
+                'required' => false
+            ])
             ->add('lyrics', TextareaType::class, [
                 'label' => 'Paroles',
                 'required' => false,
@@ -36,14 +52,6 @@ class SongType extends AbstractType
             ->add('hasLyrics', CheckboxType::class, [
                 'label' => 'Paroles disponibles ?',
                 'required' => false,
-            ])
-            ->add('person', EntityType::class, [
-                'class' => Person::class,
-                'choice_label' => 'name',  // Utiliser le nom de l'interprète au lieu de l'ID
-                'multiple' => true,
-                'expanded' => false, // Utiliser un select multiple au lieu de checkboxes
-                'label' => 'Interprètes',
-                'attr' => ['class' => 'form-select'],
             ])
             ->add('userSongKnowledge', EntityType::class, [
                 'class' => UserSongKnowledge::class,
