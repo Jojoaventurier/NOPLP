@@ -15,7 +15,7 @@
         <select id="artistList" class="w-full p-2 border rounded">
             <option value="">-- Choisir un artiste --</option>
             {% for artist in artists %}
-                <option value="{{ artist.id }}">{{ artist.name }}</option>
+                <option value="{{ artist.id|e('html') }}">{{ artist.name|e('html') }}</option>
             {% endfor %}
         </select>
         <button type="button" id="addArtist" class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Ajouter</button>
@@ -32,8 +32,6 @@
     </div>
 
     <button type="button" id="clearArtists" class="mt-2 bg-red-500 text-white px-4 py-2 rounded">Effacer</button>
-
-    {# <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded">Enregistrer</button> #}
 
     <div class="mb-4 flex items-center">
         {{ form_widget(form.isDownloaded, {'attr': {'class': 'rounded text-blue-600 focus:ring-blue-500 w-5 h-5'}}) }}
@@ -62,7 +60,23 @@
             const selectedArtistsDiv = document.getElementById("selectedArtists");
             const clearArtistsBtn = document.getElementById("clearArtists");
 
+            function escapeSpecialChars(str) {
+                return str.replace(/['&<>"\s,]/g, function (char) {
+                    switch (char) {
+                        case "'": return "&apos;";
+                        case ",": return "&comma;";
+                        case "&": return "&amp;";
+                        case "<": return "&lt;";
+                        case ">": return "&gt;";
+                        case '"': return "&quot;";
+                        case " ": return "&nbsp;";
+                        default: return char;
+                    }
+                });
+            }
+            
             function addArtist(id, name) {
+                name = escapeSpecialChars(name); // Appliquer l'échappement des caractères spéciaux
                 if (!document.querySelector(`input[value="${id}"]`)) {
                     const artistElement = document.createElement("div");
                     artistElement.classList.add("flex", "items-center", "justify-between", "p-1", "bg-white", "rounded", "shadow", "mt-1");
@@ -71,9 +85,9 @@
                         <input type="hidden" name="song[person][]" value="${id}">
                         <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
                     `;
-
+            
                     selectedArtistsDiv.appendChild(artistElement);
-
+            
                     artistElement.querySelector(".removeArtist").addEventListener("click", function () {
                         artistElement.remove();
                     });
@@ -82,6 +96,7 @@
 
             addArtistBtn.addEventListener("click", function () {
                 const selectedOption = artistList.options[artistList.selectedIndex];
+                console.log(selectedOption.value); 
                 if (selectedOption.value) {
                     addArtist(selectedOption.value, selectedOption.text);
                 }

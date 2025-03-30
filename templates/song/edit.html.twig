@@ -60,8 +60,15 @@
             const newPersonInput = document.getElementById("newPerson");
             const addNewArtistBtn = document.getElementById("addNewArtist");
             const selectedArtistsDiv = document.getElementById("selectedArtists");
+            const hiddenPersonField = document.getElementById("hiddenPersonField");
             const clearArtistsBtn = document.getElementById("clearArtists");
-
+    
+            function updateHiddenField() {
+                let selectedIds = Array.from(document.querySelectorAll('input[name="song[person][]"]'))
+                                      .map(input => input.value);
+                hiddenPersonField.value = selectedIds.join(',');
+            }
+    
             function addArtist(id, name) {
                 if (!document.querySelector(`input[value="${id}"]`)) {
                     const artistElement = document.createElement("div");
@@ -71,22 +78,24 @@
                         <input type="hidden" name="song[person][]" value="${id}">
                         <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
                     `;
-
+    
                     selectedArtistsDiv.appendChild(artistElement);
-
+                    updateHiddenField();
+    
                     artistElement.querySelector(".removeArtist").addEventListener("click", function () {
                         artistElement.remove();
+                        updateHiddenField();
                     });
                 }
             }
-
+    
             addArtistBtn.addEventListener("click", function () {
                 const selectedOption = artistList.options[artistList.selectedIndex];
                 if (selectedOption.value) {
                     addArtist(selectedOption.value, selectedOption.text);
                 }
             });
-
+    
             addNewArtistBtn.addEventListener("click", function () {
                 const newArtistName = newPersonInput.value.trim();
                 if (newArtistName) {
@@ -94,9 +103,10 @@
                     newPersonInput.value = "";
                 }
             });
-
+    
             clearArtistsBtn.addEventListener("click", function () {
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
+                updateHiddenField();
             });
         });
     </script>

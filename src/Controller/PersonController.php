@@ -21,24 +21,5 @@ final class PersonController extends AbstractController
         ]);
     }
 
-    #[Route('/search/person', name: 'app_person_search')]
-    public function search(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $query = $request->query->get('q', '');
     
-        $persons = $entityManager->getRepository(Person::class)
-            ->createQueryBuilder('p')
-            ->where('p.name LIKE :query')
-            ->setParameter('query', '%' . $query . '%')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
-    
-        $results = array_map(fn($person) => [
-            'id' => $person->getId(),
-            'name' => $person->getName(),
-        ], $persons);
-    
-        return new JsonResponse($results);
-    }
 }

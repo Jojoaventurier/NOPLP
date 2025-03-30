@@ -43,7 +43,7 @@ final class SongController extends AbstractController
             // Récupérer les artistes sélectionnés et ceux ajoutés manuellement
             $selectedArtistsIds = $request->request->all('song')['person'] ?? [];
             $newPersonName = $request->request->get('newPerson');
-    
+            
             // Ajouter les artistes existants sélectionnés
             $personRepository = $entityManager->getRepository(Person::class);
             foreach ($selectedArtistsIds as $artistId) {
