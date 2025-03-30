@@ -38,33 +38,43 @@ final class SongController extends AbstractController
         $song = new Song();
         $form = $this->createForm(SongType::class, $song);
         $form->handleRequest($request);
-
+    
         if ($form->isSubmitted() && $form->isValid()) {
-            $personIds = $request->request->all('song')['persons'] ?? [];
-            $newPersonName = $form->get('newPerson')->getData();
-
-            // Récupération des interprètes sélectionnés
-            $persons = $entityManager->getRepository(Person::class)->findBy(['id' => $personIds]);
-
-            if ($newPersonName) {
-                $newPerson = new Person();
-                $newPerson->setName($newPersonName);
-                $entityManager->persist($newPerson);
-                $persons[] = $newPerson; // Ajouter le nouvel interprète
+            // Récupérer les artistes sélectionnés et ceux ajoutés manuellement
+            $selectedArtistsIds = $request->request->all('song')['person'] ?? [];
+            $newPersonName = $request->request->get('newPerson');
+    
+            // Ajouter les artistes existants sélectionnés
+            $personRepository = $entityManager->getRepository(Person::class);
+            foreach ($selectedArtistsIds as $artistId) {
+                $existingPerson = $personRepository->find($artistId);
+                if ($existingPerson) {
+                    $song->addPerson($existingPerson);
+                }
             }
-
-            foreach ($persons as $person) {
-                $song->addPerson($person);
+    
+            // Ajouter un nouvel artiste s'il est renseigné
+            if (!empty($newPersonName)) {
+                $existingPerson = $personRepository->findOneBy(['name' => $newPersonName]);
+                if (!$existingPerson) {
+                    $newPerson = new Person();
+                    $newPerson->setName($newPersonName);
+                    $entityManager->persist($newPerson);
+                    $song->addPerson($newPerson);
+                } else {
+                    $song->addPerson($existingPerson);
+                }
             }
-
+    
             $entityManager->persist($song);
             $entityManager->flush();
-
+    
             return $this->redirectToRoute('app_song');
         }
-
+    
         return $this->render('song/new.html.twig', [
             'form' => $form->createView(),
+            'artists' => $entityManager->getRepository(Person::class)->findAll(),
         ]);
     }
 
@@ -73,38 +83,45 @@ final class SongController extends AbstractController
     {
         $form = $this->createForm(SongType::class, $song);
         $form->handleRequest($request);
-    
+
         if ($form->isSubmitted() && $form->isValid()) {
-            // Récupération du champ non mappé pour ajouter un nouvel artiste
-            $newPersonName = $form->get('newPerson')->getData();
-    
+            // Récupérer les artistes sélectionnés et ceux ajoutés manuellement
+            $selectedArtistsIds = $request->request->all('song')['person'] ?? [];
+            $newPersonName = $request->request->get('newPerson');
+
+            // Ajouter les artistes existants sélectionnés
+            $personRepository = $entityManager->getRepository(Person::class);
+            foreach ($selectedArtistsIds as $artistId) {
+                $existingPerson = $personRepository->find($artistId);
+                if ($existingPerson && !$song->getPerson()->contains($existingPerson)) {
+                    $song->addPerson($existingPerson);
+                }
+            }
+
+            // Ajouter un nouvel artiste s'il est renseigné
             if (!empty($newPersonName)) {
-                // Vérifier si l'artiste existe déjà en base
-                $existingPerson = $entityManager->getRepository(Person::class)->findOneBy(['name' => $newPersonName]);
-    
+                $existingPerson = $personRepository->findOneBy(['name' => $newPersonName]);
                 if (!$existingPerson) {
-                    // Créer et enregistrer un nouvel artiste
                     $newPerson = new Person();
                     $newPerson->setName($newPersonName);
                     $entityManager->persist($newPerson);
-                } else {
-                    $newPerson = $existingPerson;
-                }
-    
-                // Ajouter l'artiste sans écraser ceux existants
-                if (!$song->getPerson()->contains($newPerson)) {
                     $song->addPerson($newPerson);
+                } else {
+                    if (!$song->getPerson()->contains($existingPerson)) {
+                        $song->addPerson($existingPerson);
+                    }
                 }
             }
-    
+
             $entityManager->flush();
-    
+
             return $this->redirectToRoute('app_song');
         }
-    
+
         return $this->render('song/edit.html.twig', [
             'form' => $form->createView(),
             'song' => $song,
+            'artists' => $entityManager->getRepository(Person::class)->findAll(),
         ]);
     }
 }

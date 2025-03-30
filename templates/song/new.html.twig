@@ -1,68 +1,87 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ajouter un morceau{% endblock %}
-
 {% block body %}
-    <div class="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">Ajouter un morceau</h1>
+    <h1 class="text-xl font-bold mb-4">Ajouter un nouveau morceau</h1>
 
-        {{ form_start(form, { attr: { class: 'space-y-6' } }) }}
-        <div class="grid gap-4">
-            {% for field in [form.title, form.person, form.newPerson, form.userSongKnowledge] %}
-                <div>
-                    {{ form_label(field, null, { attr: { class: 'block text-sm font-semibold text-gray-700' } }) }}
-                    {{ form_widget(field, {
-                        attr: {
-                            class: 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500',
-                            id: field.vars.id
-                        }
-                    }) }}
-                    {% if field.vars.errors|length > 0 %}
-                        <p class="text-red-500 text-sm">{{ form_errors(field) }}</p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-    
-            {% for field in [form.isDownloaded] %}
-                <div class="flex items-center gap-2">
-                    {{ form_widget(field, { id: field.vars.id, attr: { class: 'peer hidden' } }) }}
-                    <label for="{{ field.vars.id }}" class="cursor-pointer text-sm text-gray-700 peer-checked:text-blue-600">
-                        {{ field.vars.label }}
-                    </label>
-                    {% if field.vars.errors|length > 0 %}
-                        <p class="text-red-500 text-sm">{{ form_errors(field) }}</p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
+    {{ form_start(form) }}
 
-        <!-- Bouton pour ajouter un nouvel interprète -->
-        <button type="button" id="toggleNewArtist" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">
-            Ajouter un nouvel interprète
-        </button>
-
-        {{ form_end(form) }}
+    <div class="mb-4">
+        {{ form_label(form.title, 'Titre de la chanson', {'label_attr': {'class': 'block font-semibold'}}) }}
+        {{ form_widget(form.title, {'attr': {'class': 'w-full p-2 border rounded'}}) }}
     </div>
 
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const toggleButton = document.getElementById("toggleNewArtist");
-        const selectArtist = document.getElementById("{{ form.person.vars.id }}");
-        const newArtistInput = document.getElementById("{{ form.newPerson.vars.id }}");
+    <div class="mb-4">
+        <label for="artistList" class="block font-semibold">Sélectionner un interprète</label>
+        <select id="artistList" class="w-full p-2 border rounded">
+            <option value="">-- Choisir un artiste --</option>
+            {% for artist in artists %}
+                <option value="{{ artist.id }}">{{ artist.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="button" id="addArtist" class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Ajouter</button>
+    </div>
 
-        toggleButton.addEventListener("click", function () {
-            if (newArtistInput.disabled) {
-                newArtistInput.disabled = false;
-                selectArtist.disabled = true;
-                newArtistInput.focus();
-                toggleButton.textContent = "Réutiliser un interprète existant";
-            } else {
-                newArtistInput.disabled = true;
-                selectArtist.disabled = false;
-                newArtistInput.value = ""; // Efface l'entrée
-                toggleButton.textContent = "Ajouter un nouvel interprète";
+    <div class="mb-4">
+        <label for="newPerson" class="block font-semibold">Ajouter un nouvel interprète</label>
+        <input type="text" id="newPerson" name="newPerson" class="w-full p-2 border rounded" placeholder="Nom de l'artiste">
+        <button type="button" id="addNewArtist" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Ajouter</button>
+    </div>
+
+    <div id="selectedArtists" class="mt-4 p-2 border rounded bg-gray-100 min-h-[50px]">
+        <p class="text-gray-500 text-sm">Artistes ajoutés :</p>
+    </div>
+
+    <button type="button" id="clearArtists" class="mt-2 bg-red-500 text-white px-4 py-2 rounded">Effacer</button>
+
+    <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded">Enregistrer</button>
+
+    {{ form_end(form) }}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const artistList = document.getElementById("artistList");
+            const addArtistBtn = document.getElementById("addArtist");
+            const newPersonInput = document.getElementById("newPerson");
+            const addNewArtistBtn = document.getElementById("addNewArtist");
+            const selectedArtistsDiv = document.getElementById("selectedArtists");
+            const clearArtistsBtn = document.getElementById("clearArtists");
+
+            function addArtist(id, name) {
+                if (!document.querySelector(`input[value="${id}"]`)) {
+                    const artistElement = document.createElement("div");
+                    artistElement.classList.add("flex", "items-center", "justify-between", "p-1", "bg-white", "rounded", "shadow", "mt-1");
+                    artistElement.innerHTML = `
+                        <span>${name}</span>
+                        <input type="hidden" name="song[person][]" value="${id}">
+                        <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
+                    `;
+
+                    selectedArtistsDiv.appendChild(artistElement);
+
+                    artistElement.querySelector(".removeArtist").addEventListener("click", function () {
+                        artistElement.remove();
+                    });
+                }
             }
+
+            addArtistBtn.addEventListener("click", function () {
+                const selectedOption = artistList.options[artistList.selectedIndex];
+                if (selectedOption.value) {
+                    addArtist(selectedOption.value, selectedOption.text);
+                }
+            });
+
+            addNewArtistBtn.addEventListener("click", function () {
+                const newArtistName = newPersonInput.value.trim();
+                if (newArtistName) {
+                    addArtist("new_" + newArtistName, newArtistName);
+                    newPersonInput.value = "";
+                }
+            });
+
+            clearArtistsBtn.addEventListener("click", function () {
+                selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
+            });
         });
-    });
     </script>
 {% endblock %}

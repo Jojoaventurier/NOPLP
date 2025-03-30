@@ -22,31 +22,16 @@ class SongType extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'label' => 'Titre du morceau',
-                'required' => true,
-                'attr' => ['class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500'],
+                'label' => 'Titre',
+                'attr' => ['class' => 'w-full p-2 border rounded'],
             ])
             ->add('person', EntityType::class, [
                 'class' => Person::class,
                 'choice_label' => 'name',
-                'multiple' => true,  
-                'expanded' => false, 
-                'label' => 'Interprètes',
-                'attr' => [
-                    'class' => 'artist-search',
-                    'data-placeholder' => 'Recherchez un ou plusieurs interprètes...',
-                ],
-                'required' => false
-            ])
-            ->add('newPerson', TextType::class, [
-                'label' => 'Ajouter un nouvel interprète',
-                'attr' => [
-                    'placeholder' => 'Ajouter un nouvel interprète', 
-                    'class' => 'mt-1 w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500',
-                    'disabled' => true, // Désactivé par défaut
-                ],
-                'mapped' => false,
+                'multiple' => true,
+                'expanded' => false,
                 'required' => false,
+                'attr' => ['hidden' => true], // Ne pas afficher directement
             ])
             ->add('isDownloaded', CheckboxType::class, [
                 'label' => 'Téléchargé ?',
