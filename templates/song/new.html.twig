@@ -7,7 +7,7 @@
 
     <div class="mb-4">
         {{ form_label(form.title, 'Titre de la chanson', {'label_attr': {'class': 'block font-semibold'}}) }}
-        {{ form_widget(form.title) }}
+        {{ form_widget(form.title, {'attr': {'class': 'w-full p-2 border rounded'}}) }}
     </div>
 
     <div class="mb-4">
@@ -39,12 +39,12 @@
             {{ form_label(form.isDownloaded) }}
         </label>
     </div>
-    
+
     <div class="mb-4">
         {{ form_label(form.userSongKnowledge, null, {'label_attr': {'class': 'block text-gray-700 font-semibold'}}) }}
         {{ form_widget(form.userSongKnowledge, {'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500'}}) }}
     </div>
-    
+
     <div class="mt-6">
         {{ form_widget(form.save, {'attr': {'class': 'px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition duration-300'}}) }}
     </div>
@@ -61,33 +61,28 @@
             const clearArtistsBtn = document.getElementById("clearArtists");
 
             function escapeSpecialChars(str) {
-                return str.replace(/['&<>"\s,]/g, function (char) {
-                    switch (char) {
-                        case "'": return "&apos;";
-                        case ",": return "&comma;";
-                        case "&": return "&amp;";
-                        case "<": return "&lt;";
-                        case ">": return "&gt;";
-                        case '"': return "&quot;";
-                        case " ": return "&nbsp;";
-                        default: return char;
-                    }
+                return str.replace(/["'&<>]/g, function (char) {
+                    return {
+                        '"': '&quot;',
+                        "'": '&#039;',
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;'
+                    }[char];
                 });
             }
-            
+
             function addArtist(id, name) {
-                name = escapeSpecialChars(name); // Appliquer l'échappement des caractères spéciaux
                 if (!document.querySelector(`input[value="${id}"]`)) {
                     const artistElement = document.createElement("div");
                     artistElement.classList.add("flex", "items-center", "justify-between", "p-1", "bg-white", "rounded", "shadow", "mt-1");
                     artistElement.innerHTML = `
-                        <span>${name}</span>
+                        <span>${escapeSpecialChars(name)}</span>
                         <input type="hidden" name="song[person][]" value="${id}">
                         <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
                     `;
-            
                     selectedArtistsDiv.appendChild(artistElement);
-            
+
                     artistElement.querySelector(".removeArtist").addEventListener("click", function () {
                         artistElement.remove();
                     });
@@ -96,7 +91,6 @@
 
             addArtistBtn.addEventListener("click", function () {
                 const selectedOption = artistList.options[artistList.selectedIndex];
-                console.log(selectedOption.value); 
                 if (selectedOption.value) {
                     addArtist(selectedOption.value, selectedOption.text);
                 }
@@ -105,7 +99,8 @@
             addNewArtistBtn.addEventListener("click", function () {
                 const newArtistName = newPersonInput.value.trim();
                 if (newArtistName) {
-                    addArtist("new_" + newArtistName, newArtistName);
+                    const tempId = `new_${newArtistName.replace(/\s+/g, '_')}`;
+                    addArtist(tempId, newArtistName);
                     newPersonInput.value = "";
                 }
             });
