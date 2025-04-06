@@ -1,3 +1,5 @@
+<?php
+
 namespace App\Form\Enum;
 
 enum UserSongKnowledgeEnum: string
