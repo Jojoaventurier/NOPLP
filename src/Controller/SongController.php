@@ -80,49 +80,53 @@ final class SongController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'app_song_edit')]
-    public function edit(Request $request, Song $song, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(SongType::class, $song);
-        $form->handleRequest($request);
+public function edit(Request $request, Song $song, EntityManagerInterface $entityManager): Response
+{
+    $form = $this->createForm(SongType::class, $song);
+    $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Récupérer les artistes sélectionnés et ceux ajoutés manuellement
-            $selectedArtistsIds = $request->request->all('song')['person'] ?? [];
-            $newPersonName = $request->request->get('newPerson');
+    // Récupère les données envoyées du champ "song[person][]"
+    $personsData = $request->request->all('song')['person'] ?? [];
 
-            // Ajouter les artistes existants sélectionnés
-            $personRepository = $entityManager->getRepository(Person::class);
-            foreach ($selectedArtistsIds as $artistId) {
-                $existingPerson = $personRepository->find($artistId);
-                if ($existingPerson && !$song->getPerson()->contains($existingPerson)) {
-                    $song->addPerson($existingPerson);
-                }
-            }
-
-            // Ajouter un nouvel artiste s'il est renseigné
-            if (!empty($newPersonName)) {
-                $existingPerson = $personRepository->findOneBy(['name' => $newPersonName]);
-                if (!$existingPerson) {
-                    $newPerson = new Person();
-                    $newPerson->setName($newPersonName);
-                    $entityManager->persist($newPerson);
-                    $song->addPerson($newPerson);
-                } else {
-                    if (!$song->getPerson()->contains($existingPerson)) {
-                        $song->addPerson($existingPerson);
-                    }
-                }
-            }
-
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_song');
+    if ($form->isSubmitted() && $form->isValid()) {
+        // On vide les artistes liés pour éviter les doublons
+        foreach ($song->getPerson() as $existingPerson) {
+            $song->removePerson($existingPerson);
         }
 
-        return $this->render('song/edit.html.twig', [
-            'form' => $form->createView(),
-            'song' => $song,
-            'artists' => $entityManager->getRepository(Person::class)->findAll(),
-        ]);
+        foreach ($personsData as $value) {
+            if (str_starts_with($value, 'new_')) {
+                $name = substr($value, 4);
+                $name = html_entity_decode(str_replace(['&nbsp;', '&comma;'], [' ', ','], $name));
+                $name = strip_tags($name);
+
+                $existingPerson = $entityManager->getRepository(Person::class)->findOneBy(['name' => $name]);
+                if ($existingPerson) {
+                    $song->addPerson($existingPerson);
+                } else {
+                    $newPerson = new Person();
+                    $newPerson->setName($name);
+                    $entityManager->persist($newPerson);
+                    $song->addPerson($newPerson);
+                }
+            } else {
+                $person = $entityManager->getRepository(Person::class)->find($value);
+                if ($person) {
+                    $song->addPerson($person);
+                }
+            }
+        }
+
+        $entityManager->flush();
+
+        $this->addFlash('success', 'La chanson a bien été mise à jour.');
+        return $this->redirectToRoute('app_song');
     }
+
+    return $this->render('song/edit.html.twig', [
+        'form' => $form->createView(),
+        'song' => $song,
+        'artists' => $entityManager->getRepository(Person::class)->findAll(),
+    ]);
+}
 }
