@@ -31,6 +31,8 @@ final class SongController extends AbstractController
             'song' => $song,
         ]);
     }
+
+    #[Route('/new/', name: 'app_song_new')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $song = new Song();
