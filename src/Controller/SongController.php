@@ -31,7 +31,6 @@ final class SongController extends AbstractController
             'song' => $song,
         ]);
     }
-
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $song = new Song();
