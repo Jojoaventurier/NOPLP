@@ -32,28 +32,28 @@ final class SongController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_song_new')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $song = new Song();
         $form = $this->createForm(SongType::class, $song);
         $form->handleRequest($request);
     
+        $personRepository = $entityManager->getRepository(Person::class);
+    
         if ($form->isSubmitted() && $form->isValid()) {
-            // Récupérer les artistes sélectionnés et ceux ajoutés manuellement
-            $selectedArtistsIds = $request->request->all('song')['person'] ?? [];
+            $data = $request->request->all('song');
+            $selectedArtistsIds = $data['person'] ?? [];
             $newPersonName = $request->request->get('newPerson');
-            
-            // Ajouter les artistes existants sélectionnés
-            $personRepository = $entityManager->getRepository(Person::class);
+    
             foreach ($selectedArtistsIds as $artistId) {
-                $existingPerson = $personRepository->find($artistId);
-                if ($existingPerson) {
-                    $song->addPerson($existingPerson);
+                if (is_numeric($artistId)) {
+                    $existingPerson = $personRepository->find($artistId);
+                    if ($existingPerson) {
+                        $song->addPerson($existingPerson);
+                    }
                 }
             }
     
-            // Ajouter un nouvel artiste s'il est renseigné
             if (!empty($newPersonName)) {
                 $existingPerson = $personRepository->findOneBy(['name' => $newPersonName]);
                 if (!$existingPerson) {
@@ -74,7 +74,7 @@ final class SongController extends AbstractController
     
         return $this->render('song/new.html.twig', [
             'form' => $form->createView(),
-            'artists' => $entityManager->getRepository(Person::class)->findAll(),
+            'artists' => $personRepository->findAll(),
         ]);
     }
 
