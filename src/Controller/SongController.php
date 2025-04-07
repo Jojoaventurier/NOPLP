@@ -27,8 +27,21 @@ final class SongController extends AbstractController
     #[Route('/song/{id}', name: 'app_song_show')]
     public function show(Song $song): Response
     {
+
+        $mainPerformer = $song->getPerson()->first() ?: null;
+
+        $otherSongs = [];
+    
+        if ($mainPerformer) {
+            $otherSongs = $mainPerformer->getSongs()->filter(function(Song $s) use ($song) {
+                return $s !== $song;
+            });
+        }
+
         return $this->render('song/show.html.twig', [
             'song' => $song,
+            'main_performer' => $mainPerformer,
+            'other_songs' => $otherSongs,
         ]);
     }
 
