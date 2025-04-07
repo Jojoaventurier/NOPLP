@@ -8,7 +8,6 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
@@ -38,27 +37,19 @@ class SongType extends AbstractType
                 'required' => false,
                 'attr' => ['class' => 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500']
             ])
-            // Add the artists fields
-            ->add('existingPersons', HiddenType::class, [
-                'mapped' => false,
-                'required' => false,
-                'attr' => ['class' => 'artist-ids'], // To help with JavaScript binding
-            ])
-            ->add('newPersons', HiddenType::class, [
-                'mapped' => false,
-                'required' => false,
-                'attr' => ['class' => 'artist-names'], // To help with JavaScript binding
-            ])
-            ->add('save', SubmitType::class, [
-                'label' => 'Enregistrer',
-                'attr' => ['class' => 'px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition duration-300']
-            ]);
+
+            // ->add('save', SubmitType::class, [
+            //     'label' => 'Enregistrer',
+            //     'attr' => ['class' => 'px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition duration-300']
+            // ])
+            ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Song::class,
+            'allow_extra_fields' => true, 
         ]);
     }
 }

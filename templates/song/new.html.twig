@@ -46,7 +46,7 @@
         'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500'}
     }) }}
 
-    {{ form_widget(form.save) }}
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Enregistrer</button>
 
     {{ form_end(form) }}
 
@@ -60,17 +60,17 @@
             const selectedArtistsDiv = document.getElementById("selectedArtists");
             const clearArtistsBtn = document.getElementById("clearArtists");
             
-            function createArtistElement(label, hiddenName, hiddenValue) {
+            const createArtistElement = (label, hiddenName, hiddenValue) => {
                 const wrapper = document.createElement("div");
                 wrapper.classList.add("flex", "items-center", "justify-between", "p-2", "bg-white", "rounded", "shadow-sm", "border");
                 wrapper.innerHTML = `
                     <span class="flex-1">${label}</span>
-                    <input type="hidden" name="song[existingPersons][]" value="${hiddenValue}">
+                    <input type="hidden" name="song[${hiddenName}][]" value="${hiddenValue}">
                     <button type="button" class="ml-2 text-red-500 hover:text-red-700 removeArtist">✖</button>
                 `;
                 wrapper.querySelector(".removeArtist").addEventListener("click", () => wrapper.remove());
                 return wrapper;
-            }
+            };
             
             addArtistBtn.addEventListener("click", () => {
                 const selectedOption = artistList.options[artistList.selectedIndex];
@@ -101,30 +101,6 @@
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
             });
         
-            form.addEventListener('submit', (event) => {
-                // Ensure all dynamically created hidden inputs are included in the form submission
-                const existingArtists = Array.from(document.querySelectorAll('input[name="song[existingPersons][]"]'))
-                    .map(input => input.value);
-                const newArtists = Array.from(document.querySelectorAll('input[name="song[newPersons][]"]'))
-                    .map(input => input.value);
-                
-                // Add the dynamically created hidden inputs
-                existingArtists.forEach(artistId => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'song[existingPersons][]';
-                    input.value = artistId;
-                    form.appendChild(input);
-                });
-                
-                newArtists.forEach(artistName => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'song[newPersons][]';
-                    input.value = artistName;
-                    form.appendChild(input);
-                });
-            });
         });
     </script>
 {% endblock %}

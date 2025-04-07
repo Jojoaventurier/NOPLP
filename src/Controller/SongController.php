@@ -37,16 +37,18 @@ final class SongController extends AbstractController
     {
         $song = new Song();
         $form = $this->createForm(SongType::class, $song);
-        $data = $form->handleRequest($request);
+        $form->handleRequest($request);
+    
         $personRepository = $entityManager->getRepository(Person::class);
-        
+    
         if ($form->isSubmitted() && $form->isValid()) {
-            // Get the raw form data for the artists
-            $existingIds = $request->request->all('song')['existingPersons'] ?? [];
-            $newNames = $request->request->all('song')['newPersons'] ?? [];
-            dd($data);
-            
-            // Handle existing artists
+    
+            // 🔍 Get the raw artist data from the request
+            $submittedData = $request->request->all('song'); // shortcut to get 'song' array
+            $existingIds = $submittedData['existingPersons'] ?? [];
+            $newNames = $submittedData['newPersons'] ?? [];
+    
+            // 🎯 Handle existing artists
             foreach ($existingIds as $id) {
                 if (is_numeric($id)) {
                     $person = $personRepository->find($id);
@@ -55,8 +57,8 @@ final class SongController extends AbstractController
                     }
                 }
             }
-        
-            // Handle new artists
+    
+            // 🎯 Handle new artists
             foreach ($newNames as $name) {
                 $name = trim($name);
                 if ($name !== '') {
@@ -69,13 +71,14 @@ final class SongController extends AbstractController
                     $song->addPerson($person);
                 }
             }
-        
+    
             $entityManager->persist($song);
             $entityManager->flush();
-        
+            // $this->addFlash('success', 'La chanson a été ajoutée avec succès.');
+    
             return $this->redirectToRoute('app_song');
         }
-        
+    
         return $this->render('song/new.html.twig', [
             'form' => $form->createView(),
             'artists' => $personRepository->findAll(),
