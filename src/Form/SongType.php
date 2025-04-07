@@ -5,13 +5,13 @@ namespace App\Form;
 use App\Entity\Song;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 
 class SongType extends AbstractType
 {
@@ -41,8 +41,15 @@ class SongType extends AbstractType
             ])
             ->add('lyricsFile', FileType::class, [
                 'label' => 'Importer un fichier de paroles (.txt)',
-                'mapped' => false, // Très important : ce champ ne correspond pas directement à une propriété de l'entité
+                'mapped' => false,
                 'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '1M',
+                        'mimeTypes' => ['text/plain'],
+                        'mimeTypesMessage' => 'Veuillez uploader un fichier texte valide (.txt)',
+                    ])
+                ],
                 'attr' => ['class' => 'block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50']
             ])
             ->add('lyrics', TextareaType::class, [
