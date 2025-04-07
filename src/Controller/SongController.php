@@ -47,6 +47,18 @@ final class SongController extends AbstractController
             $submittedData = $request->request->all('song'); // shortcut to get 'song' array
             $existingIds = $submittedData['existingPersons'] ?? [];
             $newNames = $submittedData['newPersons'] ?? [];
+
+            $uploadedFile = $form->get('lyricsFile')->getData();
+            if ($uploadedFile && $uploadedFile->getClientOriginalExtension() === 'txt') {
+                try {
+                    $content = file_get_contents($uploadedFile->getPathname());
+                    $song->setLyrics($content);
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Erreur lors de la lecture du fichier de paroles.');
+                }
+            }
+    
+            $this->addFlash('success', 'Chanson enregistrée avec succès.');
     
             // 🎯 Handle existing artists
             foreach ($existingIds as $id) {
@@ -94,6 +106,19 @@ final class SongController extends AbstractController
         $personsData = $request->request->all('song')['person'] ?? [];
         
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $uploadedFile = $form->get('lyricsFile')->getData();
+            if ($uploadedFile && $uploadedFile->getClientOriginalExtension() === 'txt') {
+                try {
+                    $content = file_get_contents($uploadedFile->getPathname());
+                    $song->setLyrics($content);
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Erreur lors de la lecture du fichier de paroles.');
+                }
+            }
+    
+            $this->addFlash('success', 'Chanson enregistrée avec succès.');
+
             foreach ($song->getPerson() as $existingPerson) {
                 $song->removePerson($existingPerson);
             }
