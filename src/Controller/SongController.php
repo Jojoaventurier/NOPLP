@@ -42,10 +42,10 @@ final class SongController extends AbstractController
         $personRepository = $entityManager->getRepository(Person::class);
     
         if ($form->isSubmitted() && $form->isValid()) {
-            $data = $request->request->all('song');
-    
-            // 🎯 Artistes existants
-            $existingIds = $data['existingPersons'] ?? [];
+            $data = $form->getData(); // Better to use form data instead of raw request
+            
+            // Handle existing artists
+            $existingIds = $request->request->all('song')['existingPersons'] ?? [];
             foreach ($existingIds as $id) {
                 if (is_numeric($id)) {
                     $person = $personRepository->find($id);
@@ -55,8 +55,8 @@ final class SongController extends AbstractController
                 }
             }
     
-            // 🆕 Nouveaux artistes
-            $newNames = $data['newPersons'] ?? [];
+            // Handle new artists
+            $newNames = $request->request->all('song')['newPersons'] ?? [];
             foreach ($newNames as $name) {
                 $name = trim($name);
                 if ($name !== '') {
@@ -65,6 +65,7 @@ final class SongController extends AbstractController
                         $person = new Person();
                         $person->setName($name);
                         $entityManager->persist($person);
+                        // No flush here to avoid partial persistence
                     }
                     $song->addPerson($person);
                 }

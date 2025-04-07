@@ -19,13 +19,15 @@ class SongType extends AbstractType
             ->add('title', TextType::class, [
                 'label' => 'Titre de la chanson',
                 'required' => true,
+                'attr' => ['class' => 'w-full p-2 border rounded'] // Match template classes
             ])
             ->add('isDownloaded', CheckboxType::class, [
                 'label' => 'Téléchargée',
                 'required' => false,
+                'attr' => ['class' => 'rounded text-blue-600 focus:ring-blue-500 w-5 h-5'] // Match template
             ])
             ->add('userSongKnowledge', ChoiceType::class, [
-                'choices'  => [
+                'choices' => [
                     'Unknown' => 'unknown',
                     'Little' => 'little',
                     'Well' => 'well',
@@ -33,12 +35,12 @@ class SongType extends AbstractType
                 ],
                 'placeholder' => 'Choose knowledge level',
                 'required' => false,
+                'attr' => ['class' => 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500'] // Match template
             ])
             ->add('save', SubmitType::class, [
                 'label' => 'Enregistrer',
+                'attr' => ['class' => 'px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition duration-300'] // Match template
             ]);
-        
-        // Les artistes sont gérés via le JS : récupérés dans le contrôleur via $request->request->all('song')['person']
     }
 
     public function configureOptions(OptionsResolver $resolver): void

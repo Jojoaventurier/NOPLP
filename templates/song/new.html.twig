@@ -3,51 +3,50 @@
 {% block body %}
     <h1 class="text-xl font-bold mb-4">Ajouter un nouveau morceau</h1>
 
-    {{ form_start(form) }}
+    {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
 
-    <div class="mb-4">
-        {{ form_label(form.title, 'Titre de la chanson', {'label_attr': {'class': 'block font-semibold'}}) }}
-        {{ form_widget(form.title, {'attr': {'class': 'w-full p-2 border rounded'}}) }}
-    </div>
+    {{ form_row(form.title, {
+        'label': 'Titre de la chanson',
+        'label_attr': {'class': 'block font-semibold'},
+        'attr': {'class': 'w-full p-2 border rounded'}
+    }) }}
 
     <div class="mb-4">
         <label for="artistList" class="block font-semibold">Sélectionner un interprète</label>
         <select id="artistList" class="w-full p-2 border rounded">
             <option value="">-- Choisir un artiste --</option>
             {% for artist in artists %}
-                <option value="{{ artist.id|e('html') }}">{{ artist.name|e('html') }}</option>
+                <option value="{{ artist.id|e('html_attr') }}">{{ artist.name|e('html') }}</option>
             {% endfor %}
         </select>
-        <button type="button" id="addArtist" class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Ajouter</button>
+        <button type="button" id="addArtist" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Ajouter</button>
     </div>
 
     <div class="mb-4">
         <label for="newPerson" class="block font-semibold">Ajouter un nouvel interprète</label>
         <input type="text" id="newPerson" name="newPerson" class="w-full p-2 border rounded" placeholder="Nom de l'artiste">
-        <button type="button" id="addNewArtist" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Ajouter</button>
+        <button type="button" id="addNewArtist" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ajouter</button>
     </div>
 
-    <div id="selectedArtists" class="mt-4 p-2 border rounded bg-gray-100 min-h-[50px]">
+    <div id="selectedArtists" class="mt-4 p-2 border rounded bg-gray-100 min-h-[50px] space-y-2">
         <p class="text-gray-500 text-sm">Artistes ajoutés :</p>
+        <!-- Selected artists will appear here -->
     </div>
 
-    <button type="button" id="clearArtists" class="mt-2 bg-red-500 text-white px-4 py-2 rounded">Effacer</button>
+    <button type="button" id="clearArtists" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Effacer</button>
 
-    <div class="mb-4 flex items-center">
-        {{ form_widget(form.isDownloaded, {'attr': {'class': 'rounded text-blue-600 focus:ring-blue-500 w-5 h-5'}}) }}
-        <label for="{{ form.isDownloaded.vars.id }}" class="ml-2 text-gray-700 font-medium">
-            {{ form_label(form.isDownloaded) }}
-        </label>
-    </div>
+    {{ form_row(form.isDownloaded, {
+        'label': 'Téléchargée',
+        'label_attr': {'class': 'ml-2 text-gray-700 font-medium'},
+        'attr': {'class': 'rounded text-blue-600 focus:ring-blue-500 w-5 h-5'}
+    }) }}
 
-    <div class="mb-4">
-        {{ form_label(form.userSongKnowledge, null, {'label_attr': {'class': 'block text-gray-700 font-semibold'}}) }}
-        {{ form_widget(form.userSongKnowledge, {'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500'}}) }}
-    </div>
+    {{ form_row(form.userSongKnowledge, {
+        'label_attr': {'class': 'block text-gray-700 font-semibold'},
+        'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500'}
+    }) }}
 
-    <div class="mt-6">
-        {{ form_widget(form.save, {'attr': {'class': 'px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition duration-300'}}) }}
-    </div>
+    {{ form_widget(form.save) }}
 
     {{ form_end(form) }}
 
@@ -62,11 +61,11 @@
         
             function createArtistElement(label, hiddenName, hiddenValue) {
                 const wrapper = document.createElement("div");
-                wrapper.classList.add("flex", "items-center", "justify-between", "p-1", "bg-white", "rounded", "shadow", "mt-1");
+                wrapper.classList.add("flex", "items-center", "justify-between", "p-2", "bg-white", "rounded", "shadow-sm", "border");
                 wrapper.innerHTML = `
-                    <span>${label}</span>
+                    <span class="flex-1">${label}</span>
                     <input type="hidden" name="${hiddenName}" value="${hiddenValue}">
-                    <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
+                    <button type="button" class="ml-2 text-red-500 hover:text-red-700 removeArtist">✖</button>
                 `;
                 wrapper.querySelector(".removeArtist").addEventListener("click", () => wrapper.remove());
                 return wrapper;
@@ -74,18 +73,23 @@
         
             addArtistBtn.addEventListener("click", () => {
                 const selectedOption = artistList.options[artistList.selectedIndex];
+                if (!selectedOption.value) return;
+                
                 const id = selectedOption.value;
                 const name = selectedOption.text;
         
-                if (id && !document.querySelector(`input[name="song[existingPersons][]"][value="${id}"]`)) {
+                if (!document.querySelector(`input[name="song[existingPersons][]"][value="${id}"]`)) {
                     const element = createArtistElement(name, "song[existingPersons][]", id);
                     selectedArtistsDiv.appendChild(element);
+                    artistList.selectedIndex = 0; // Reset selection
                 }
             });
         
             addNewArtistBtn.addEventListener("click", () => {
                 const name = newPersonInput.value.trim();
-                if (name && !document.querySelector(`input[name="song[newPersons][]"][value="${name}"]`)) {
+                if (!name) return;
+                
+                if (!document.querySelector(`input[name="song[newPersons][]"][value="${name}"]`)) {
                     const element = createArtistElement(name, "song[newPersons][]", name);
                     selectedArtistsDiv.appendChild(element);
                     newPersonInput.value = "";
@@ -95,6 +99,14 @@
             clearArtistsBtn.addEventListener("click", () => {
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
             });
+
+            // Handle Enter key in new artist input
+            newPersonInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    addNewArtistBtn.click();
+                }
+            });
         });
-        </script>
+    </script>
 {% endblock %}
