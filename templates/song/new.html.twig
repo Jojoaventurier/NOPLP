@@ -52,62 +52,49 @@
     {{ form_end(form) }}
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", () => {
             const artistList = document.getElementById("artistList");
             const addArtistBtn = document.getElementById("addArtist");
             const newPersonInput = document.getElementById("newPerson");
             const addNewArtistBtn = document.getElementById("addNewArtist");
             const selectedArtistsDiv = document.getElementById("selectedArtists");
             const clearArtistsBtn = document.getElementById("clearArtists");
-
-            function escapeSpecialChars(str) {
-                return str.replace(/["'&<>]/g, function (char) {
-                    return {
-                        '"': '&quot;',
-                        "'": '&#039;',
-                        '&': '&amp;',
-                        '<': '&lt;',
-                        '>': '&gt;'
-                    }[char];
-                });
+        
+            function createArtistElement(label, hiddenName, hiddenValue) {
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("flex", "items-center", "justify-between", "p-1", "bg-white", "rounded", "shadow", "mt-1");
+                wrapper.innerHTML = `
+                    <span>${label}</span>
+                    <input type="hidden" name="${hiddenName}" value="${hiddenValue}">
+                    <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
+                `;
+                wrapper.querySelector(".removeArtist").addEventListener("click", () => wrapper.remove());
+                return wrapper;
             }
-
-            function addArtist(id, name) {
-                if (!document.querySelector(`input[value="${id}"]`)) {
-                    const artistElement = document.createElement("div");
-                    artistElement.classList.add("flex", "items-center", "justify-between", "p-1", "bg-white", "rounded", "shadow", "mt-1");
-                    artistElement.innerHTML = `
-                        <span>${escapeSpecialChars(name)}</span>
-                        <input type="hidden" name="song[person][]" value="${id}">
-                        <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
-                    `;
-                    selectedArtistsDiv.appendChild(artistElement);
-
-                    artistElement.querySelector(".removeArtist").addEventListener("click", function () {
-                        artistElement.remove();
-                    });
-                }
-            }
-
-            addArtistBtn.addEventListener("click", function () {
+        
+            addArtistBtn.addEventListener("click", () => {
                 const selectedOption = artistList.options[artistList.selectedIndex];
-                if (selectedOption.value) {
-                    addArtist(selectedOption.value, selectedOption.text);
+                const id = selectedOption.value;
+                const name = selectedOption.text;
+        
+                if (id && !document.querySelector(`input[name="song[existingPersons][]"][value="${id}"]`)) {
+                    const element = createArtistElement(name, "song[existingPersons][]", id);
+                    selectedArtistsDiv.appendChild(element);
                 }
             });
-
-            addNewArtistBtn.addEventListener("click", function () {
-                const newArtistName = newPersonInput.value.trim();
-                if (newArtistName) {
-                    const tempId = `new_${newArtistName.replace(/\s+/g, '_')}`;
-                    addArtist(tempId, newArtistName);
+        
+            addNewArtistBtn.addEventListener("click", () => {
+                const name = newPersonInput.value.trim();
+                if (name && !document.querySelector(`input[name="song[newPersons][]"][value="${name}"]`)) {
+                    const element = createArtistElement(name, "song[newPersons][]", name);
+                    selectedArtistsDiv.appendChild(element);
                     newPersonInput.value = "";
                 }
             });
-
-            clearArtistsBtn.addEventListener("click", function () {
+        
+            clearArtistsBtn.addEventListener("click", () => {
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
             });
         });
-    </script>
+        </script>
 {% endblock %}

@@ -43,27 +43,30 @@ final class SongController extends AbstractController
     
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $request->request->all('song');
-            $selectedArtistsIds = $data['person'] ?? [];
-            $newPersonName = $request->request->get('newPerson');
     
-            foreach ($selectedArtistsIds as $artistId) {
-                if (is_numeric($artistId)) {
-                    $existingPerson = $personRepository->find($artistId);
-                    if ($existingPerson) {
-                        $song->addPerson($existingPerson);
+            // 🎯 Artistes existants
+            $existingIds = $data['existingPersons'] ?? [];
+            foreach ($existingIds as $id) {
+                if (is_numeric($id)) {
+                    $person = $personRepository->find($id);
+                    if ($person) {
+                        $song->addPerson($person);
                     }
                 }
             }
     
-            if (!empty($newPersonName)) {
-                $existingPerson = $personRepository->findOneBy(['name' => $newPersonName]);
-                if (!$existingPerson) {
-                    $newPerson = new Person();
-                    $newPerson->setName($newPersonName);
-                    $entityManager->persist($newPerson);
-                    $song->addPerson($newPerson);
-                } else {
-                    $song->addPerson($existingPerson);
+            // 🆕 Nouveaux artistes
+            $newNames = $data['newPersons'] ?? [];
+            foreach ($newNames as $name) {
+                $name = trim($name);
+                if ($name !== '') {
+                    $person = $personRepository->findOneBy(['name' => $name]);
+                    if (!$person) {
+                        $person = new Person();
+                        $person->setName($name);
+                        $entityManager->persist($person);
+                    }
+                    $song->addPerson($person);
                 }
             }
     
