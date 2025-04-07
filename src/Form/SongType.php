@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\Song;
-use App\Form\Enum\UserSongKnowledgeEnum;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -26,14 +25,13 @@ class SongType extends AbstractType
                 'required' => false,
             ])
             ->add('userSongKnowledge', ChoiceType::class, [
-                'label' => 'Connaissance du morceau',
-                'choices' => [
-                    'Inconnue' => UserSongKnowledgeEnum::UNKNOWN,
-                    'Un peu' => UserSongKnowledgeEnum::LITTLE,
-                    'Bien' => UserSongKnowledgeEnum::WELL,
-                    'Par cœur' => UserSongKnowledgeEnum::BY_HEART,
+                'choices'  => [
+                    'Unknown' => 'unknown',
+                    'Little' => 'little',
+                    'Well' => 'well',
+                    'By heart' => 'by_heart',
                 ],
-                'placeholder' => 'Sélectionner un niveau',
+                'placeholder' => 'Choose knowledge level',
                 'required' => false,
             ])
             ->add('save', SubmitType::class, [

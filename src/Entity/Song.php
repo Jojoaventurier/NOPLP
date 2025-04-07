@@ -40,17 +40,23 @@ class Song
 
 
 
-    #[ORM\Column(type: 'string', enumType: UserSongKnowledgeEnum::class, nullable: true)]
-    private ?UserSongKnowledgeEnum $userSongKnowledge = null;
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $userSongKnowledge = null;
     
-    public function getUserSongKnowledge(): ?UserSongKnowledgeEnum
+    public function getUserSongKnowledge(): ?string
     {
         return $this->userSongKnowledge;
     }
     
-    public function setUserSongKnowledge(?UserSongKnowledgeEnum $userSongKnowledge): static
+    public function setUserSongKnowledge(?string $userSongKnowledge): static
     {
+        $validValues = ['unknown', 'little', 'well', 'by_heart'];  // Liste des valeurs valides
+        if ($userSongKnowledge !== null && !in_array($userSongKnowledge, $validValues)) {
+            throw new \InvalidArgumentException('Valeur invalide pour userSongKnowledge.');
+        }
+    
         $this->userSongKnowledge = $userSongKnowledge;
+    
         return $this;
     }
 
