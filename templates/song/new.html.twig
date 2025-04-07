@@ -65,7 +65,7 @@
                 wrapper.classList.add("flex", "items-center", "justify-between", "p-2", "bg-white", "rounded", "shadow-sm", "border");
                 wrapper.innerHTML = `
                     <span class="flex-1">${label}</span>
-                    <input type="hidden" name="${hiddenName}" value="${hiddenValue}">
+                    <input type="hidden" name="song[${hiddenName}][]" value="${hiddenValue}">
                     <button type="button" class="ml-2 text-red-500 hover:text-red-700 removeArtist">✖</button>
                 `;
                 wrapper.querySelector(".removeArtist").addEventListener("click", () => wrapper.remove());
@@ -75,21 +75,25 @@
             addArtistBtn.addEventListener("click", () => {
                 const selectedOption = artistList.options[artistList.selectedIndex];
                 if (!selectedOption.value) return;
-        
+            
                 const id = selectedOption.value;
                 const name = selectedOption.text;
-        
+                
+                console.log('Adding existing artist:', { id, name });  // <-- Add this line
+            
                 if (!document.querySelector(`input[name="song[existingPersons][]"][value="${id}"]`)) {
                     const element = createArtistElement(name, "song[existingPersons][]", id);
                     selectedArtistsDiv.appendChild(element);
-                    artistList.selectedIndex = 0; // Reset selection
+                    artistList.selectedIndex = 0;
                 }
             });
         
             addNewArtistBtn.addEventListener("click", () => {
                 const name = newPersonInput.value.trim();
                 if (!name) return;
-        
+                
+                console.log('Adding new artist:', name);  // <-- Add this line
+            
                 if (!document.querySelector(`input[name="song[newPersons][]"][value="${name}"]`)) {
                     const element = createArtistElement(name, "song[newPersons][]", name);
                     selectedArtistsDiv.appendChild(element);
@@ -98,17 +102,33 @@
             });
         
             clearArtistsBtn.addEventListener("click", () => {
+                console.log('Clearing all selected artists');  // <-- Add this line
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
             });
         
             form.addEventListener('submit', (event) => {
-                // Populate the hidden fields before form submission
+                // Get all selected artists
                 const existingArtists = Array.from(document.querySelectorAll('input[name="song[existingPersons][]"]'))
                     .map(input => input.value);
                 const newArtists = Array.from(document.querySelectorAll('input[name="song[newPersons][]"]'))
                     .map(input => input.value);
                 
-                // Set the values in the hidden fields
+                // Create hidden input if it doesn't exist
+                if (!document.querySelector('input[name="song[existingPersons]"]')) {
+                    const hiddenExisting = document.createElement('input');
+                    hiddenExisting.type = 'hidden';
+                    hiddenExisting.name = 'song[existingPersons]';
+                    form.appendChild(hiddenExisting);
+                }
+                
+                if (!document.querySelector('input[name="song[newPersons]"]')) {
+                    const hiddenNew = document.createElement('input');
+                    hiddenNew.type = 'hidden';
+                    hiddenNew.name = 'song[newPersons]';
+                    form.appendChild(hiddenNew);
+                }
+                
+                // Set the JSON values
                 document.querySelector('input[name="song[existingPersons]"]').value = JSON.stringify(existingArtists);
                 document.querySelector('input[name="song[newPersons]"]').value = JSON.stringify(newArtists);
             });

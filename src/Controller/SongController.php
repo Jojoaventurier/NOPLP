@@ -37,16 +37,20 @@ final class SongController extends AbstractController
     {
         $song = new Song();
         $form = $this->createForm(SongType::class, $song);
-        $form->handleRequest($request);
-        
+        $data = $form->handleRequest($request);
+        dd($data);
         $personRepository = $entityManager->getRepository(Person::class);
         
         if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData(); // Better to use form data instead of raw request
-            dd($data);
+            // Get the raw form data for the artists
+            $existingArtistsJson = $request->request->get('song')['existingPersons'] ?? '[]';
+            $newArtistsJson = $request->request->get('song')['newPersons'] ?? '[]';
             
-            // Handle existing artists (those selected from the dropdown)
-            $existingIds = $request->request->all('song')['existingPersons'] ?? [];
+            // Decode the JSON strings to arrays
+            $existingIds = json_decode($existingArtistsJson, true) ?? [];
+            $newNames = json_decode($newArtistsJson, true) ?? [];
+            
+            // Handle existing artists
             foreach ($existingIds as $id) {
                 if (is_numeric($id)) {
                     $person = $personRepository->find($id);
@@ -55,27 +59,21 @@ final class SongController extends AbstractController
                     }
                 }
             }
-    
-            // Handle new artists (those entered in the text input)
-            $newNames = $request->request->all('song')['newPersons'] ?? [];
+        
+            // Handle new artists
             foreach ($newNames as $name) {
                 $name = trim($name);
                 if ($name !== '') {
-                    // Check if the person already exists in the database
                     $person = $personRepository->findOneBy(['name' => $name]);
                     if (!$person) {
-                        // If the person doesn't exist, create a new one
                         $person = new Person();
                         $person->setName($name);
                         $entityManager->persist($person);
-                        // No flush here to avoid partial persistence
                     }
-                    // Add the person to the song
                     $song->addPerson($person);
                 }
             }
-    
-            // Persist the song object (and any new people added)
+        
             $entityManager->persist($song);
             $entityManager->flush();
         
