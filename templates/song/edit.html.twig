@@ -54,6 +54,10 @@
     <input type="hidden" id="hiddenPersonField" name="hiddenPersonField" value="">
     {{ form_end(form) }}
 
+    <div class="prose whitespace-pre-wrap">
+        {{ song.lyrics ? song.lyrics|nl2br|raw : 'Pas de paroles disponibles.' }}
+    </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const artistList = document.getElementById("artistList");
