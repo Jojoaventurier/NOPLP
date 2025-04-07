@@ -38,13 +38,14 @@ final class SongController extends AbstractController
         $song = new Song();
         $form = $this->createForm(SongType::class, $song);
         $form->handleRequest($request);
-    
+        
         $personRepository = $entityManager->getRepository(Person::class);
-    
+        
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData(); // Better to use form data instead of raw request
+            dd($data);
             
-            // Handle existing artists
+            // Handle existing artists (those selected from the dropdown)
             $existingIds = $request->request->all('song')['existingPersons'] ?? [];
             foreach ($existingIds as $id) {
                 if (is_numeric($id)) {
@@ -55,28 +56,32 @@ final class SongController extends AbstractController
                 }
             }
     
-            // Handle new artists
+            // Handle new artists (those entered in the text input)
             $newNames = $request->request->all('song')['newPersons'] ?? [];
             foreach ($newNames as $name) {
                 $name = trim($name);
                 if ($name !== '') {
+                    // Check if the person already exists in the database
                     $person = $personRepository->findOneBy(['name' => $name]);
                     if (!$person) {
+                        // If the person doesn't exist, create a new one
                         $person = new Person();
                         $person->setName($name);
                         $entityManager->persist($person);
                         // No flush here to avoid partial persistence
                     }
+                    // Add the person to the song
                     $song->addPerson($person);
                 }
             }
     
+            // Persist the song object (and any new people added)
             $entityManager->persist($song);
             $entityManager->flush();
-    
+        
             return $this->redirectToRoute('app_song');
         }
-    
+        
         return $this->render('song/new.html.twig', [
             'form' => $form->createView(),
             'artists' => $personRepository->findAll(),
@@ -84,53 +89,53 @@ final class SongController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'app_song_edit')]
-public function edit(Request $request, Song $song, EntityManagerInterface $entityManager): Response
-{
-    $form = $this->createForm(SongType::class, $song);
-    $form->handleRequest($request);
+    public function edit(Request $request, Song $song, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(SongType::class, $song);
+        $form->handleRequest($request);
 
-    // Récupère les données envoyées du champ "song[person][]"
-    $personsData = $request->request->all('song')['person'] ?? [];
+        // Récupère les données envoyées du champ "song[person][]"
+        $personsData = $request->request->all('song')['person'] ?? [];
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        // On vide les artistes liés pour éviter les doublons
-        foreach ($song->getPerson() as $existingPerson) {
-            $song->removePerson($existingPerson);
-        }
+        if ($form->isSubmitted() && $form->isValid()) {
+            // On vide les artistes liés pour éviter les doublons
+            foreach ($song->getPerson() as $existingPerson) {
+                $song->removePerson($existingPerson);
+            }
 
-        foreach ($personsData as $value) {
-            if (str_starts_with($value, 'new_')) {
-                $name = substr($value, 4);
-                $name = html_entity_decode(str_replace(['&nbsp;', '&comma;'], [' ', ','], $name));
-                $name = strip_tags($name);
+            foreach ($personsData as $value) {
+                if (str_starts_with($value, 'new_')) {
+                    $name = substr($value, 4);
+                    $name = html_entity_decode(str_replace(['&nbsp;', '&comma;'], [' ', ','], $name));
+                    $name = strip_tags($name);
 
-                $existingPerson = $entityManager->getRepository(Person::class)->findOneBy(['name' => $name]);
-                if ($existingPerson) {
-                    $song->addPerson($existingPerson);
+                    $existingPerson = $entityManager->getRepository(Person::class)->findOneBy(['name' => $name]);
+                    if ($existingPerson) {
+                        $song->addPerson($existingPerson);
+                    } else {
+                        $newPerson = new Person();
+                        $newPerson->setName($name);
+                        $entityManager->persist($newPerson);
+                        $song->addPerson($newPerson);
+                    }
                 } else {
-                    $newPerson = new Person();
-                    $newPerson->setName($name);
-                    $entityManager->persist($newPerson);
-                    $song->addPerson($newPerson);
-                }
-            } else {
-                $person = $entityManager->getRepository(Person::class)->find($value);
-                if ($person) {
-                    $song->addPerson($person);
+                    $person = $entityManager->getRepository(Person::class)->find($value);
+                    if ($person) {
+                        $song->addPerson($person);
+                    }
                 }
             }
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'La chanson a bien été mise à jour.');
+            return $this->redirectToRoute('app_song');
         }
 
-        $entityManager->flush();
-
-        $this->addFlash('success', 'La chanson a bien été mise à jour.');
-        return $this->redirectToRoute('app_song');
+        return $this->render('song/edit.html.twig', [
+            'form' => $form->createView(),
+            'song' => $song,
+            'artists' => $entityManager->getRepository(Person::class)->findAll(),
+        ]);
     }
-
-    return $this->render('song/edit.html.twig', [
-        'form' => $form->createView(),
-        'song' => $song,
-        'artists' => $entityManager->getRepository(Person::class)->findAll(),
-    ]);
-}
 }
