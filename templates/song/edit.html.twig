@@ -45,17 +45,10 @@
         {{ form_widget(form.userSongKnowledge, {'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500'}}) }}
     </div>
     
-    <div class="mt-6">
-        {{ form_widget(form.save, {'attr': {'class': 'px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 transition duration-300'}}) }}
-    </div>
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Enregistrer</button>
 
-    {# <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded">Enregistrer</button> #}
     <input type="hidden" id="hiddenPersonField" name="hiddenPersonField" value="">
     {{ form_end(form) }}
-
-    {% for artist in song.person %}
-    addArtist("{{ artist.id }}", "{{ artist.name|e('js') }}");
-    {% endfor %}
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -65,23 +58,15 @@
             const addNewArtistBtn = document.getElementById("addNewArtist");
             const selectedArtistsDiv = document.getElementById("selectedArtists");
             const clearArtistsBtn = document.getElementById("clearArtists");
-    
-            // Champ caché utilisé pour gérer les IDs en backend si besoin
-            let hiddenPersonField = document.getElementById("hiddenPersonField");
-            if (!hiddenPersonField) {
-                hiddenPersonField = document.createElement("input");
-                hiddenPersonField.type = "hidden";
-                hiddenPersonField.name = "hiddenPersonField";
-                hiddenPersonField.id = "hiddenPersonField";
-                selectedArtistsDiv.parentNode.appendChild(hiddenPersonField);
-            }
-    
+
+            const hiddenPersonField = document.getElementById("hiddenPersonField");
+
             function updateHiddenField() {
                 const selectedIds = Array.from(document.querySelectorAll('input[name="song[person][]"]'))
                     .map(input => input.value);
                 hiddenPersonField.value = selectedIds.join(',');
             }
-    
+
             function addArtist(id, name) {
                 if (!document.querySelector(`input[name="song[person][]"][value="${id}"]`)) {
                     const artistElement = document.createElement("div");
@@ -91,41 +76,38 @@
                         <input type="hidden" name="song[person][]" value="${id}">
                         <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
                     `;
-    
                     selectedArtistsDiv.appendChild(artistElement);
                     updateHiddenField();
-    
+
                     artistElement.querySelector(".removeArtist").addEventListener("click", function () {
                         artistElement.remove();
                         updateHiddenField();
                     });
                 }
             }
-    
+
             addArtistBtn.addEventListener("click", function () {
                 const selectedOption = artistList.options[artistList.selectedIndex];
                 if (selectedOption.value) {
                     addArtist(selectedOption.value, selectedOption.text);
                 }
             });
-    
+
             addNewArtistBtn.addEventListener("click", function () {
                 const newArtistName = newPersonInput.value.trim();
                 if (newArtistName) {
-                    // Utilisation d'un ID temporaire unique
                     const tempId = "new_" + newArtistName;
                     addArtist(tempId, newArtistName);
                     newPersonInput.value = "";
                 }
             });
-    
+
             clearArtistsBtn.addEventListener("click", function () {
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
                 updateHiddenField();
             });
-    
-            // 🧠 Préremplir les artistes liés dans la base
 
         });
+
     </script>
 {% endblock %}

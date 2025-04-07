@@ -90,22 +90,20 @@ final class SongController extends AbstractController
     {
         $form = $this->createForm(SongType::class, $song);
         $form->handleRequest($request);
-
-        // Récupère les données envoyées du champ "song[person][]"
+        
         $personsData = $request->request->all('song')['person'] ?? [];
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
-            // On vide les artistes liés pour éviter les doublons
             foreach ($song->getPerson() as $existingPerson) {
                 $song->removePerson($existingPerson);
             }
-
+        
             foreach ($personsData as $value) {
                 if (str_starts_with($value, 'new_')) {
                     $name = substr($value, 4);
                     $name = html_entity_decode(str_replace(['&nbsp;', '&comma;'], [' ', ','], $name));
                     $name = strip_tags($name);
-
+        
                     $existingPerson = $entityManager->getRepository(Person::class)->findOneBy(['name' => $name]);
                     if ($existingPerson) {
                         $song->addPerson($existingPerson);
@@ -122,17 +120,18 @@ final class SongController extends AbstractController
                     }
                 }
             }
-
+        
             $entityManager->flush();
-
+        
             $this->addFlash('success', 'La chanson a bien été mise à jour.');
             return $this->redirectToRoute('app_song');
         }
-
+        
         return $this->render('song/edit.html.twig', [
             'form' => $form->createView(),
             'song' => $song,
             'artists' => $entityManager->getRepository(Person::class)->findAll(),
+            'songArtists' => $song->getPerson()->toArray(),
         ]);
     }
 }
