@@ -38,17 +38,13 @@ final class SongController extends AbstractController
         $song = new Song();
         $form = $this->createForm(SongType::class, $song);
         $data = $form->handleRequest($request);
-        dd($data);
         $personRepository = $entityManager->getRepository(Person::class);
         
         if ($form->isSubmitted() && $form->isValid()) {
             // Get the raw form data for the artists
-            $existingArtistsJson = $request->request->get('song')['existingPersons'] ?? '[]';
-            $newArtistsJson = $request->request->get('song')['newPersons'] ?? '[]';
-            
-            // Decode the JSON strings to arrays
-            $existingIds = json_decode($existingArtistsJson, true) ?? [];
-            $newNames = json_decode($newArtistsJson, true) ?? [];
+            $existingIds = $request->request->all('song')['existingPersons'] ?? [];
+            $newNames = $request->request->all('song')['newPersons'] ?? [];
+            dd($data);
             
             // Handle existing artists
             foreach ($existingIds as $id) {
