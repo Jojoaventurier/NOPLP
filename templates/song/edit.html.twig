@@ -31,6 +31,10 @@
         <p class="text-gray-500 text-sm">Artistes ajoutés :</p>
     </div>
 
+    {% for artist in songArtists %}
+        <div class="artistsData" data-artist-id="{{ artist.id }}" data-artist-name="{{ artist.name }}"></div>
+    {% endfor %}
+
     <button type="button" id="clearArtists" class="mt-2 bg-red-500 text-white px-4 py-2 rounded">Effacer</button>
 
     <div class="mb-4 flex items-center">
@@ -107,7 +111,13 @@
                 updateHiddenField();
             });
 
+            // Loop through each preloaded artist from songArtists
+            const artistElements = document.querySelectorAll('.artistsData');
+            artistElements.forEach(artistElement => {
+                const artistId = artistElement.getAttribute('data-artist-id');
+                const artistName = artistElement.getAttribute('data-artist-name');
+                addArtist(artistId, artistName);
+            });
         });
-
     </script>
 {% endblock %}
