@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Form\Enum\UserSongKnowledgeEnum;
 
 #[ORM\Entity(repositoryClass: SongRepository::class)]
 class Song
@@ -37,8 +38,21 @@ class Song
     #[ORM\ManyToMany(targetEntity: Person::class, inversedBy: 'songs')]
     private Collection $person;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $userSongKnowledge = null;
+
+
+    #[ORM\Column(type: 'string', enumType: UserSongKnowledgeEnum::class, nullable: true)]
+    private ?UserSongKnowledgeEnum $userSongKnowledge = null;
+    
+    public function getUserSongKnowledge(): ?UserSongKnowledgeEnum
+    {
+        return $this->userSongKnowledge;
+    }
+    
+    public function setUserSongKnowledge(?UserSongKnowledgeEnum $userSongKnowledge): static
+    {
+        $this->userSongKnowledge = $userSongKnowledge;
+        return $this;
+    }
 
     public function __construct()
     {
@@ -134,19 +148,4 @@ class Song
         return $this;
     }
 
-    public function getUserSongKnowledge(): ?int
-    {
-        return $this->userSongKnowledge;
-    }
-
-    public function setUserSongKnowledge(?int $userSongKnowledge): static
-    {
-        if ($userSongKnowledge !== null && ($userSongKnowledge < 1 || $userSongKnowledge > 5)) {
-            throw new \InvalidArgumentException('La connaissance des paroles doit être entre 1 et 5.');
-        }
-
-        $this->userSongKnowledge = $userSongKnowledge;
-
-        return $this;
-    }
 }
