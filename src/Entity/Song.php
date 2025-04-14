@@ -63,6 +63,7 @@ class Song
     public function __construct()
     {
         $this->person = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -152,6 +153,24 @@ class Song
         $this->person->removeElement($person);
 
         return $this;
+    }
+
+    #[ORM\OneToMany(mappedBy: 'song', targetEntity: SongReview::class, cascade: ['persist', 'remove'])]
+    private Collection $reviews;
+
+    public function addReview(): void
+    {
+        $this->reviews->add(new SongReview($this));
+    }
+
+    public function getReviewCount(): int
+    {
+        return $this->reviews->count();
+    }
+
+    public function getLastReviewDate(): ?\DateTimeInterface
+    {
+        return $this->reviews->last()?->getReviewedAt();
     }
 
 }
