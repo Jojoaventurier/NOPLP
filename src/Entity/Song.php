@@ -32,6 +32,18 @@ class Song
     #[ORM\Column(nullable: true)]
     private ?bool $hasLyrics = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?bool $isListened = null;
+    
+    #[ORM\Column(nullable: true)]
+    private ?int $noplpCount = 0;
+    
+    #[ORM\Column(nullable: true)]
+    private ?int $normalPlayCount = 0;
+    
+    #[ORM\Column(nullable: true)]
+    private ?int $sameSongCount = 0;
+
     /**
      * @var Collection<int, Person>
      */
@@ -209,5 +221,55 @@ class Song
 
         return $this;
     }
+
+    public function isListened(): ?bool
+    {
+        return $this->isListened;
+    }
+
+    public function setIsListened(?bool $isListened): static
+    {
+        $this->isListened = $isListened;
+        return $this;
+    }
+
+    public function getNoplpCount(): int
+    {
+        return $this->noplpCount ?? 0;
+    }
+
+    public function incrementNoplpCount(): static
+    {
+        $this->noplpCount++;
+        return $this;
+    }
+
+    public function getNormalPlayCount(): int
+    {
+        return $this->normalPlayCount ?? 0;
+    }
+
+    public function incrementNormalPlayCount(): static
+    {
+        $this->normalPlayCount++;
+        return $this;
+    }
+
+    public function getSameSongCount(): int
+    {
+        return $this->sameSongCount ?? 0;
+    }
+
+    public function incrementSameSongCount(): static
+    {
+        $this->sameSongCount++;
+        return $this;
+    }
+
+    public function isMastered(): bool
+{
+    return $this->userSongKnowledge === 'by_heart';
+}
+
 
 }

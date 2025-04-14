@@ -173,68 +173,68 @@ final class SongController extends AbstractController
         ]);
     }
 
-    #[Route('/import/excel', name: 'import_excel')]
-public function importExcel(Request $request, EntityManagerInterface $em): Response
-{
-    $file = $request->files->get('excel_file');
-    if (!$file) {
-        $this->addFlash('error', 'Aucun fichier Excel fourni.');
-        return $this->redirectToRoute('app_song');
-    }
+//     #[Route('/import/excel', name: 'import_excel')]
+// public function importExcel(Request $request, EntityManagerInterface $em): Response
+// {
+//     $file = $request->files->get('excel_file');
+//     if (!$file) {
+//         $this->addFlash('error', 'Aucun fichier Excel fourni.');
+//         return $this->redirectToRoute('app_song');
+//     }
 
-    $spreadsheet = IOFactory::load($file->getPathname());
-    $sheet = $spreadsheet->getActiveSheet();
-    $rows = $sheet->toArray();
+//     $spreadsheet = IOFactory::load($file->getPathname());
+//     $sheet = $spreadsheet->getActiveSheet();
+//     $rows = $sheet->toArray();
 
-    $personRepo = $em->getRepository(Person::class);
-    $currentArtist = null;
+//     $personRepo = $em->getRepository(Person::class);
+//     $currentArtist = null;
 
-    foreach ($rows as $index => $row) {
-        if ($index === 0) continue; // Ignorer l'entête
+//     foreach ($rows as $index => $row) {
+//         if ($index === 0) continue; // Ignorer l'entête
 
-        $artist = $row[0] ?: $currentArtist;
-        $currentArtist = $artist;
+//         $artist = $row[0] ?: $currentArtist;
+//         $currentArtist = $artist;
 
-        $title = $row[1];
-        if (!$artist || !$title) continue;
+//         $title = $row[1];
+//         if (!$artist || !$title) continue;
 
-        $isDownloaded = strtolower(trim($row[2])) === 'x';
-        $hasLyrics = strtolower(trim($row[3])) === 'x';
-        $listened = strtolower(trim($row[4])) === 'x';
-        $known = strtolower(trim($row[5])) === 'x';
-        $mastered = strtolower(trim($row[6])) === 'x';
-        $category = trim($row[7]);
+//         $isDownloaded = strtolower(trim($row[2])) === 'x';
+//         $hasLyrics = strtolower(trim($row[3])) === 'x';
+//         $listened = strtolower(trim($row[4])) === 'x';
+//         $known = strtolower(trim($row[5])) === 'x';
+//         $mastered = strtolower(trim($row[6])) === 'x';
+//         $category = trim($row[7]);
 
-        $lastReviewedAt = \DateTime::createFromFormat('d/m/Y', trim($row[8])) ?: null;
-        $daysUntilReview = is_numeric($row[10]) ? (int)$row[10] : null;
+//         $lastReviewedAt = \DateTime::createFromFormat('d/m/Y', trim($row[8])) ?: null;
+//         $daysUntilReview = is_numeric($row[10]) ? (int)$row[10] : null;
 
-        // Artiste
-        $person = $personRepo->findOneBy(['name' => $artist]);
-        if (!$person) {
-            $person = new Person();
-            $person->setName($artist);
-            $em->persist($person);
-        }
+//         // Artiste
+//         $person = $personRepo->findOneBy(['name' => $artist]);
+//         if (!$person) {
+//             $person = new Person();
+//             $person->setName($artist);
+//             $em->persist($person);
+//         }
 
-        // Chanson
-        $song = new Song();
-        $song->setTitle($title);
-        $song->addPerson($person);
-        $song->setIsDownloaded($isDownloaded);
-        $song->setHasLyrics($hasLyrics);
-        $song->setListened($listened);
-        $song->setKnown($known);
-        $song->setMastered($mastered);
-        $song->setCategory($category);
-        $song->setLastReviewedAt($lastReviewedAt);
-        $song->setDaysUntilReview($daysUntilReview);
+//         // Chanson
+//         $song = new Song();
+//         $song->setTitle($title);
+//         $song->addPerson($person);
+//         $song->setIsDownloaded($isDownloaded);
+//         $song->setHasLyrics($hasLyrics);
+//         $song->setListened($listened);
+//         $song->setKnown($known);
+//         $song->setMastered($mastered);
+//         $song->setCategory($category);
+//         $song->setLastReviewedAt($lastReviewedAt);
+//         $song->setDaysUntilReview($daysUntilReview);
 
-        $em->persist($song);
-    }
+//         $em->persist($song);
+//     }
 
-    $em->flush();
-    $this->addFlash('success', 'Importation Excel réussie !');
-    return $this->redirectToRoute('app_song');
-}
+//     $em->flush();
+//     $this->addFlash('success', 'Importation Excel réussie !');
+//     return $this->redirectToRoute('app_song');
+// }
 
 }
