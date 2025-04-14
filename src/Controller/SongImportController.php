@@ -13,14 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class SongImportController extends AbstractController
 {
-    #[Route('/song/import', name: 'app_song_import')]
-    public function index(): Response
-    {
-        return $this->render('song_import/index.html.twig', [
-            'controller_name' => 'SongImportController',
-        ]);
-    }
-
     #[Route('/import-songs', name: 'import_songs', methods: ['POST'])]
     public function import(Request $request, EntityManagerInterface $em): Response
     {
@@ -45,14 +37,13 @@ final class SongImportController extends AbstractController
             $downloaded = $row['C'] ?? null;
             $hasLyrics = $row['D'] ?? null;
             $listened = $row['E'] ?? null;
-            $knowledge = $row['F'] ?? null;
-            $noplp = $row['G'] ?? 0;
-            $normalPlay = $row['H'] ?? 0;
+            $userKnowledgeRaw = $row['F'] ?? null;
+            $crossValue = $row['G'] ?? null;
+            $playInfo = strtoupper(trim($row['H'] ?? ''));
             $sameSong = $row['I'] ?? 0;
 
             if (!$artistName || !$title) continue;
 
-            // Trouve ou crée l'artiste
             $person = $em->getRepository(Person::class)->findOneBy(['name' => $artistName]);
             if (!$person) {
                 $person = new Person();
@@ -60,9 +51,7 @@ final class SongImportController extends AbstractController
                 $em->persist($person);
             }
 
-            // Vérifie si la chanson existe déjà
             $song = $em->getRepository(Song::class)->findOneBy(['title' => $title]);
-
             if (!$song) {
                 $song = new Song();
                 $song->setTitle($title);
@@ -72,9 +61,20 @@ final class SongImportController extends AbstractController
             $song->setIsDownloaded($downloaded === 'Oui');
             $song->setHasLyrics($hasLyrics === 'Oui');
             $song->setIsListened($listened === 'Oui');
-            $song->setUserSongKnowledge($this->mapKnowledge($knowledge));
-            $song->incrementNoplpCount($noplp);
-            $song->incrementNormalPlayCount($normalPlay);
+
+            // Logic for user song knowledge
+            if (!empty($crossValue)) {
+                $song->setUserSongKnowledge('by_heart');
+            } elseif ($userKnowledgeRaw) {
+                $song->setUserSongKnowledge($this->mapKnowledge($userKnowledgeRaw));
+            }
+
+            // Count T and C in play info
+            $normalPlayCount = substr_count($playInfo, 'T');
+            $noplpCount = substr_count($playInfo, 'C');
+
+            $song->incrementNormalPlayCount($normalPlayCount);
+            $song->incrementNoplpCount($noplpCount);
             $song->incrementSameSongCount($sameSong);
 
             $em->persist($song);
