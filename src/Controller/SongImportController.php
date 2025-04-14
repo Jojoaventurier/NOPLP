@@ -20,7 +20,7 @@ final class SongImportController extends AbstractController
 
         if (!$file) {
             $this->addFlash('error', 'Aucun fichier fourni');
-            return $this->redirectToRoute('some_route');
+            return $this->redirectToRoute('app_song');
         }
 
         $spreadsheet = IOFactory::load($file->getPathname());
@@ -84,7 +84,7 @@ final class SongImportController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', "$rowCount chansons importées avec succès.");
-        return $this->redirectToRoute('some_route');
+        return $this->redirectToRoute('app_song');
     }
 
     private function mapKnowledge(?string $valeur): ?string
