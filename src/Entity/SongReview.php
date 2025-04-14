@@ -2,45 +2,48 @@
 
 namespace App\Entity;
 
+use App\Repository\SongReviewRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: SongReviewRepository::class)]
 class SongReview
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private int $id;
+    #[ORM\Column]
+    private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'reviews')]
-    private Song $song;
+    #[ORM\ManyToOne(inversedBy: 'songReviews')]
+    private ?Song $song = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $reviewedAt;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $reviewedAt = null;
 
-    public function __construct()
+    public function getId(): ?int
     {
-        $this->reviewedAt = new \DateTime();
+        return $this->id;
     }
 
-    // ... getters et setters ...
-
-    /**
-     * Get the value of song
-     */ 
-    public function getSong()
+    public function getSong(): ?Song
     {
         return $this->song;
     }
 
-    /**
-     * Set the value of song
-     *
-     * @return  self
-     */ 
-    public function setSong($song)
+    public function setSong(?Song $song): static
     {
         $this->song = $song;
+
+        return $this;
+    }
+
+    public function getReviewedAt(): ?\DateTimeImmutable
+    {
+        return $this->reviewedAt;
+    }
+
+    public function setReviewedAt(\DateTimeImmutable $reviewedAt): static
+    {
+        $this->reviewedAt = $reviewedAt;
 
         return $this;
     }

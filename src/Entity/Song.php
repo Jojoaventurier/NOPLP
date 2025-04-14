@@ -64,6 +64,7 @@ class Song
     {
         $this->person = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->songReviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -158,6 +159,12 @@ class Song
     #[ORM\OneToMany(mappedBy: 'song', targetEntity: SongReview::class, cascade: ['persist', 'remove'])]
     private Collection $reviews;
 
+    /**
+     * @var Collection<int, SongReview>
+     */
+    #[ORM\OneToMany(targetEntity: SongReview::class, mappedBy: 'song')]
+    private Collection $songReviews;
+
     public function addReview(): void
     {
         $this->reviews->add(new SongReview($this));
@@ -171,6 +178,36 @@ class Song
     public function getLastReviewDate(): ?\DateTimeInterface
     {
         return $this->reviews->last()?->getReviewedAt();
+    }
+
+    /**
+     * @return Collection<int, SongReview>
+     */
+    public function getSongReviews(): Collection
+    {
+        return $this->songReviews;
+    }
+
+    public function addSongReview(SongReview $songReview): static
+    {
+        if (!$this->songReviews->contains($songReview)) {
+            $this->songReviews->add($songReview);
+            $songReview->setSong($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSongReview(SongReview $songReview): static
+    {
+        if ($this->songReviews->removeElement($songReview)) {
+            // set the owning side to null (unless already changed)
+            if ($songReview->getSong() === $this) {
+                $songReview->setSong(null);
+            }
+        }
+
+        return $this;
     }
 
 }
