@@ -32,26 +32,27 @@ final class SongImportController extends AbstractController
         $lastArtistName = null;
     
         foreach ($rows as $index => $row) {
-            if ($index === 1) continue; // Ignore header
+            if ($index === 1) continue; // Skip header
     
             $artistName = $row['A'] ?? null;
             $title = $row['B'] ?? null;
+    
+            if (!$artistName && $lastArtistName) {
+                $artistName = $lastArtistName;
+            }
+    
+            if (!$artistName || !$title) continue;
+    
+            $lastArtistName = $artistName; // Store for next loop if needed
+    
             $downloaded = $row['C'] ?? null;
             $hasLyrics = $row['D'] ?? null;
             $listened = $row['E'] ?? null;
             $userKnowledgeRaw = $row['F'] ?? null;
             $crossValue = $row['G'] ?? null;
             $playInfo = strtoupper(trim($row['H'] ?? ''));
-    
-            // Gestion des cellules fusionnées : si vide, réutiliser le dernier nom d'artiste.
-            if ($artistName) {
-                $lastArtistName = $artistName;
-            } else {
-                $artistName = $lastArtistName;
-            }
-    
-            // Vérification minimale
-            if (!$artistName || !$title) continue;
+            $reviewDate1 = $row['I'] ?? null;
+            $reviewDate2 = $row['J'] ?? null;
     
             // Recherche ou création de l'artiste
             $person = $em->getRepository(Person::class)->findOneBy(['name' => $artistName]);
@@ -68,42 +69,53 @@ final class SongImportController extends AbstractController
                 $song->setTitle($title);
             }
     
-            $song->addPerson($person);
-            $song->setIsDownloaded($downloaded === 'Oui');
-            $song->setHasLyrics($hasLyrics === 'Oui');
-            $song->setIsListened($listened === 'Oui');
+            // Association de l'artiste à la chanson
+            if (!$song->getPerson()->contains($person)) {
+                $song->addPerson($person);
+            }
+
+            // Si une valeur existe, on met à true
+            if (!empty($downloaded)) {
+                $song->setIsDownloaded(true);
+            }
+            if (!empty($hasLyrics)) {
+                $song->setHasLyrics(true);
+            }
+            if (!empty($listened)) {
+                $song->setIsListened(true);
+            }
     
-            // Logique connaissance utilisateur
+            // Gestion de la connaissance de la chanson
             if (!empty($crossValue)) {
                 $song->setUserSongKnowledge('by_heart');
             } elseif ($userKnowledgeRaw) {
-                $song->setUserSongKnowledge($this->mapKnowledge($userKnowledgeRaw));
+                $mappedKnowledge = $this->mapKnowledge($userKnowledgeRaw);
+                if ($mappedKnowledge) {
+                    $song->setUserSongKnowledge($mappedKnowledge);
+                }
             }
     
-            // Compter T et C
+            // Comptage des T et C dans la colonne H
             $normalPlayCount = substr_count($playInfo, 'T');
             $noplpCount = substr_count($playInfo, 'C');
-    
-            $song->incrementNormalPlayCount($normalPlayCount);
-            $song->incrementNoplpCount($noplpCount);
-            $song->incrementSameSongCount((int) $sameSong);
-    
-            // Gestion de la date dans les colonnes J ou K
-            $dateCell1 = $row['I'] ?? null;
-            $dateCell2 = $row['J'] ?? null;
-    
-            $dateToSet = null;
-            if (!empty($dateCell1)) {
-                $dateToSet = \DateTimeImmutable::createFromFormat('Y-m-d', date('Y-m-d', \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($dateCell1)));
-            } elseif (!empty($dateCell2)) {
-                $dateToSet = \DateTimeImmutable::createFromFormat('Y-m-d', date('Y-m-d', \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($dateCell2)));
-            }
-    
-            if ($dateToSet) {
-                $song->setLastReviewDate($dateToSet);
-            }
+            $song->setNormalPlayCount($normalPlayCount);
+            $song->setNoplpCount($noplpCount);
     
             $em->persist($song);
+    
+            // Création d'un SongReview si I ou J contient une date
+            if ($this->isValidDate($reviewDate1)) {
+                $review = new SongReview();
+                $review->setSong($song);
+                $review->setReviewedAt(new \DateTimeImmutable($reviewDate1));
+                $em->persist($review);
+            } elseif ($this->isValidDate($reviewDate2)) {
+                $review = new SongReview();
+                $review->setSong($song);
+                $review->setReviewedAt(new \DateTimeImmutable($reviewDate2));
+                $em->persist($review);
+            }
+    
             $rowCount++;
         }
     

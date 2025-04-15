@@ -230,6 +230,18 @@ class Song
         return $this;
     }
 
+    public function setNormalPlayCount(int $count): static
+    {
+        $this->normalPlayCount = max(0, $count);
+        return $this;
+    }
+
+    public function setNoplpCount(int $count): static
+    {
+        $this->noplpCount = max(0, $count);
+        return $this;
+    }
+
     public function incrementNormalPlayCount(int $amount = 1): static
     {
         $this->normalPlayCount += $amount;
