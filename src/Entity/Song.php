@@ -40,8 +40,6 @@ class Song
     #[ORM\Column(nullable: true)]
     private ?int $normalPlayCount = 0;
     
-    #[ORM\Column(nullable: true)]
-    private ?int $sameSongCount = 0;
 
     /**
      * @var Collection<int, Person>
@@ -232,38 +230,28 @@ class Song
         return $this;
     }
 
-    public function getNoplpCount(): int
+    public function incrementNormalPlayCount(int $amount = 1): static
     {
-        return $this->noplpCount ?? 0;
+        $this->normalPlayCount += $amount;
+        return $this;
     }
 
-    public function incrementNoplpCount(): static
+    public function incrementNoplpCount(int $amount = 1): static
     {
-        $this->noplpCount++;
+        $this->noplpCount += $amount;
         return $this;
     }
 
     public function getNormalPlayCount(): int
     {
-        return $this->normalPlayCount ?? 0;
+        return $this->normalPlayCount;
     }
 
-    public function incrementNormalPlayCount(): static
+    public function getNoplpCount(): int
     {
-        $this->normalPlayCount++;
-        return $this;
+        return $this->noplpCount;
     }
 
-    public function getSameSongCount(): int
-    {
-        return $this->sameSongCount ?? 0;
-    }
-
-    public function incrementSameSongCount(): static
-    {
-        $this->sameSongCount++;
-        return $this;
-    }
 
     public function isMastered(): bool
 {
