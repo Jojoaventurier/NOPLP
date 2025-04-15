@@ -59,6 +59,7 @@ final class SongImportController extends AbstractController
             if (!$person) {
                 $person = new Person();
                 $person->setName($artistName);
+                $person->setCategory('Femme');
                 $em->persist($person);
             }
     
