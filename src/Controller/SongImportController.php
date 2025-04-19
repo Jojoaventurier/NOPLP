@@ -14,37 +14,40 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class SongImportController extends AbstractController
 {
+    
     #[Route('/import-songs', name: 'import_songs', methods: ['POST'])]
     public function import(Request $request, EntityManagerInterface $em): Response
     {
         $file = $request->files->get('excel_file');
-    
+
         if (!$file) {
             $this->addFlash('error', 'Aucun fichier fourni');
             return $this->redirectToRoute('app_song');
         }
-    
+
         $spreadsheet = IOFactory::load($file->getPathname());
         $sheet = $spreadsheet->getActiveSheet();
         $rows = $sheet->toArray(null, true, true, true);
-    
+
         $rowCount = 0;
         $lastArtistName = null;
-    
+
         foreach ($rows as $index => $row) {
-            if ($index === 1) continue; // Skip header
-    
+            if ($index === 1) continue; // Ignore l'en-tête
+
             $artistName = $row['A'] ?? null;
             $title = $row['B'] ?? null;
-    
+
             if (!$artistName && $lastArtistName) {
                 $artistName = $lastArtistName;
             }
-    
+
             if (!$artistName || !$title) continue;
-    
-            $lastArtistName = $artistName; // Store for next loop if needed
-    
+
+            // Nettoyage du nom
+            $artistName = trim($artistName);
+            $lastArtistName = $artistName; // Stocke pour la prochaine ligne
+
             $downloaded = $row['C'] ?? null;
             $hasLyrics = $row['D'] ?? null;
             $listened = $row['E'] ?? null;
@@ -53,7 +56,7 @@ final class SongImportController extends AbstractController
             $playInfo = strtoupper(trim($row['H'] ?? ''));
             $reviewDate1 = $row['I'] ?? null;
             $reviewDate2 = $row['J'] ?? null;
-    
+
             // Recherche ou création de l'artiste
             $person = $em->getRepository(Person::class)->findOneBy(['name' => $artistName]);
             if (!$person) {
@@ -62,20 +65,19 @@ final class SongImportController extends AbstractController
                 $person->setCategory('Femme');
                 $em->persist($person);
             }
-    
+
             // Recherche ou création de la chanson
             $song = $em->getRepository(Song::class)->findOneBy(['title' => $title]);
             if (!$song) {
                 $song = new Song();
                 $song->setTitle($title);
             }
-    
+
             // Association de l'artiste à la chanson
             if (!$song->getPerson()->contains($person)) {
                 $song->addPerson($person);
             }
 
-            // Si une valeur existe, on met à true
             if (!empty($downloaded)) {
                 $song->setIsDownloaded(true);
             }
@@ -85,8 +87,7 @@ final class SongImportController extends AbstractController
             if (!empty($listened)) {
                 $song->setIsListened(true);
             }
-    
-            // Gestion de la connaissance de la chanson
+
             if (!empty($crossValue)) {
                 $song->setUserSongKnowledge('by_heart');
             } elseif ($userKnowledgeRaw) {
@@ -95,16 +96,15 @@ final class SongImportController extends AbstractController
                     $song->setUserSongKnowledge($mappedKnowledge);
                 }
             }
-    
-            // Comptage des T et C dans la colonne H
+
             $normalPlayCount = substr_count($playInfo, 'T');
             $noplpCount = substr_count($playInfo, 'C');
             $song->setNormalPlayCount($normalPlayCount);
             $song->setNoplpCount($noplpCount);
-    
+
             $em->persist($song);
-    
-            // Création d'un SongReview si I ou J contient une date
+
+            // Création d'un SongReview si date valide
             if ($this->isValidDate($reviewDate1)) {
                 $review = new SongReview();
                 $review->setSong($song);
@@ -116,12 +116,12 @@ final class SongImportController extends AbstractController
                 $review->setReviewedAt(new \DateTimeImmutable($reviewDate2));
                 $em->persist($review);
             }
-    
+
             $rowCount++;
         }
-    
+
         $em->flush();
-    
+
         $this->addFlash('success', "$rowCount chansons importées avec succès.");
         return $this->redirectToRoute('app_song');
     }
