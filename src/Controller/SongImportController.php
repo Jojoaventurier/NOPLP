@@ -47,6 +47,7 @@ final class SongImportController extends AbstractController
             // Nettoyage du nom
             $artistName = trim($artistName);
             $lastArtistName = $artistName; // Stocke pour la prochaine ligne
+            $existingPersons = [];
 
             $downloaded = $row['C'] ?? null;
             $hasLyrics = $row['D'] ?? null;
@@ -58,12 +59,18 @@ final class SongImportController extends AbstractController
             $reviewDate2 = $row['J'] ?? null;
 
             // Recherche ou création de l'artiste
-            $person = $em->getRepository(Person::class)->findOneBy(['name' => $artistName]);
-            if (!$person) {
-                $person = new Person();
-                $person->setName($artistName);
-                $person->setCategory('Femme');
-                $em->persist($person);
+            $artistName = trim($artistName); // nettoyage espaces
+            if (isset($existingPersons[$artistName])) {
+                $person = $existingPersons[$artistName];
+            } else {
+                $person = $em->getRepository(Person::class)->findOneBy(['name' => $artistName]);
+                if (!$person) {
+                    $person = new Person();
+                    $person->setName($artistName);
+                    $person->setCategory('Femme');
+                    $em->persist($person);
+                }
+                $existingPersons[$artistName] = $person;
             }
 
             // Recherche ou création de la chanson
