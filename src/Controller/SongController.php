@@ -55,12 +55,11 @@ final class SongController extends AbstractController
         $personRepository = $entityManager->getRepository(Person::class);
     
         if ($form->isSubmitted() && $form->isValid()) {
-    
-            // 🔍 Get the raw artist data from the request
-            $submittedData = $request->request->all('song'); // shortcut to get 'song' array
+            $submittedData = $request->request->all('song');
             $existingIds = $submittedData['existingPersons'] ?? [];
             $newNames = $submittedData['newPersons'] ?? [];
-
+    
+            // Handle file upload
             $uploadedFile = $form->get('lyricsFile')->getData();
             if ($uploadedFile && $uploadedFile->getClientOriginalExtension() === 'txt') {
                 try {
@@ -71,9 +70,7 @@ final class SongController extends AbstractController
                 }
             }
     
-            $this->addFlash('success', 'Chanson enregistrée avec succès.');
-    
-            // 🎯 Handle existing artists
+            // Handle existing artists
             foreach ($existingIds as $id) {
                 if (is_numeric($id)) {
                     $person = $personRepository->find($id);
@@ -83,14 +80,21 @@ final class SongController extends AbstractController
                 }
             }
     
-            // 🎯 Handle new artists
+            // Handle new artists with normalized name checking
             foreach ($newNames as $name) {
-                $name = trim($name);
-                if ($name !== '') {
-                    $person = $personRepository->findOneBy(['name' => $name]);
+                $normalizedName = $this->normalizeName($name);
+                if ($normalizedName !== '') {
+                    // Check if artist exists (case-insensitive and whitespace normalized)
+                    $person = $personRepository->createQueryBuilder('p')
+                        ->where('LOWER(TRIM(p.name)) = LOWER(:name)')
+                        ->setParameter('name', $normalizedName)
+                        ->getQuery()
+                        ->getOneOrNullResult();
+    
                     if (!$person) {
                         $person = new Person();
-                        $person->setName($name);
+                        $person->setName($this->normalizeName($name)); // Store normalized name
+                        $person->setCategory('Femme'); // Set default category
                         $entityManager->persist($person);
                     }
                     $song->addPerson($person);
@@ -99,7 +103,7 @@ final class SongController extends AbstractController
     
             $entityManager->persist($song);
             $entityManager->flush();
-            // $this->addFlash('success', 'La chanson a été ajoutée avec succès.');
+            $this->addFlash('success', 'La chanson a été ajoutée avec succès.');
     
             return $this->redirectToRoute('app_song');
         }
@@ -116,10 +120,12 @@ final class SongController extends AbstractController
         $form = $this->createForm(SongType::class, $song);
         $form->handleRequest($request);
         
-        $personsData = $request->request->all('song')['person'] ?? [];
+        $submittedData = $request->request->all('song');
+        $existingIds = $submittedData['existingPersons'] ?? [];
+        $newNames = $submittedData['newPersons'] ?? [];
         
         if ($form->isSubmitted() && $form->isValid()) {
-
+            // Handle file upload
             $uploadedFile = $form->get('lyricsFile')->getData();
             if ($uploadedFile && $uploadedFile->getClientOriginalExtension() === 'txt') {
                 try {
@@ -130,37 +136,44 @@ final class SongController extends AbstractController
                 }
             }
     
-            $this->addFlash('success', 'Chanson enregistrée avec succès.');
-
+            // Clear existing associations
             foreach ($song->getPerson() as $existingPerson) {
                 $song->removePerson($existingPerson);
             }
-        
-            foreach ($personsData as $value) {
-                if (str_starts_with($value, 'new_')) {
-                    $name = substr($value, 4);
-                    $name = html_entity_decode(str_replace(['&nbsp;', '&comma;'], [' ', ','], $name));
-                    $name = strip_tags($name);
-        
-                    $existingPerson = $entityManager->getRepository(Person::class)->findOneBy(['name' => $name]);
-                    if ($existingPerson) {
-                        $song->addPerson($existingPerson);
-                    } else {
-                        $newPerson = new Person();
-                        $newPerson->setName($name);
-                        $entityManager->persist($newPerson);
-                        $song->addPerson($newPerson);
-                    }
-                } else {
-                    $person = $entityManager->getRepository(Person::class)->find($value);
+    
+            // Handle existing artists
+            foreach ($existingIds as $id) {
+                if (is_numeric($id)) {
+                    $person = $entityManager->getRepository(Person::class)->find($id);
                     if ($person) {
                         $song->addPerson($person);
                     }
                 }
             }
-        
+    
+            // Handle new artists with normalized name checking
+            foreach ($newNames as $name) {
+                $normalizedName = $this->normalizeName($name);
+                if ($normalizedName !== '') {
+                    // Check if artist exists (case-insensitive and whitespace normalized)
+                    $person = $entityManager->getRepository(Person::class)
+                        ->createQueryBuilder('p')
+                        ->where('LOWER(TRIM(p.name)) = LOWER(:name)')
+                        ->setParameter('name', $normalizedName)
+                        ->getQuery()
+                        ->getOneOrNullResult();
+    
+                    if (!$person) {
+                        $person = new Person();
+                        $person->setName($this->normalizeName($name)); // Store normalized name
+                        $person->setCategory('Femme'); // Set default category
+                        $entityManager->persist($person);
+                    }
+                    $song->addPerson($person);
+                }
+            }
+    
             $entityManager->flush();
-        
             $this->addFlash('success', 'La chanson a bien été mise à jour.');
             return $this->redirectToRoute('app_song');
         }
@@ -173,6 +186,11 @@ final class SongController extends AbstractController
         ]);
     }
 
-
+    private function normalizeName(string $name): string
+    {
+        $name = trim($name);
+        $name = preg_replace('/\s+/', ' ', $name); // Replace multiple spaces with single
+        return $name;
+    }
 
 }
