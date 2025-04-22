@@ -3,7 +3,7 @@
 {% block body %}
     <h1 class="text-xl font-bold mb-4">Modifier la chanson</h1>
 
-    {{ form_start(form) }}
+    {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
 
     <div class="mb-4">
         {{ form_label(form.title, 'Titre de la chanson', {'label_attr': {'class': 'block font-semibold'}}) }}
@@ -15,27 +15,30 @@
         <select id="artistList" class="w-full p-2 border rounded">
             <option value="">-- Choisir un artiste --</option>
             {% for artist in artists %}
-                <option value="{{ artist.id }}">{{ artist.name }}</option>
+                <option value="{{ artist.id|e('html_attr') }}">{{ artist.name|e('html') }}</option>
             {% endfor %}
         </select>
-        <button type="button" id="addArtist" class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Ajouter</button>
+        <button type="button" id="addArtist" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Ajouter</button>
     </div>
 
     <div class="mb-4">
         <label for="newPerson" class="block font-semibold">Ajouter un nouvel interprète</label>
-        <input type="text" id="newPerson" name="newPerson" class="w-full p-2 border rounded" placeholder="Nom de l'artiste">
-        <button type="button" id="addNewArtist" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Ajouter</button>
+        <input type="text" id="newPerson" class="w-full p-2 border rounded" placeholder="Nom de l'artiste">
+        <button type="button" id="addNewArtist" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ajouter</button>
     </div>
 
-    <div id="selectedArtists" class="mt-4 p-2 border rounded bg-gray-100 min-h-[50px]">
+    <div id="selectedArtists" class="mt-4 p-2 border rounded bg-gray-100 min-h-[50px] space-y-2">
         <p class="text-gray-500 text-sm">Artistes ajoutés :</p>
+        {% for artist in songArtists %}
+            <div class="flex items-center justify-between p-2 bg-white rounded shadow-sm border">
+                <span class="flex-1">{{ artist.name }}</span>
+                <input type="hidden" name="song[existingPersons][]" value="{{ artist.id }}">
+                <button type="button" class="ml-2 text-red-500 hover:text-red-700 removeArtist">✖</button>
+            </div>
+        {% endfor %}
     </div>
 
-    {% for artist in songArtists %}
-        <div class="artistsData" data-artist-id="{{ artist.id }}" data-artist-name="{{ artist.name }}"></div>
-    {% endfor %}
-
-    <button type="button" id="clearArtists" class="mt-2 bg-red-500 text-white px-4 py-2 rounded">Effacer</button>
+    <button type="button" id="clearArtists" class="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Effacer</button>
 
     <div class="mb-4 flex items-center">
         {{ form_widget(form.isDownloaded, {'attr': {'class': 'rounded text-blue-600 focus:ring-blue-500 w-5 h-5'}}) }}
@@ -48,75 +51,72 @@
         {{ form_label(form.userSongKnowledge, null, {'label_attr': {'class': 'block text-gray-700 font-semibold'}}) }}
         {{ form_widget(form.userSongKnowledge, {'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500'}}) }}
     </div>
+
+    {{ form_row(form.lyricsFile, {
+        'label': 'Fichier de paroles (TXT)',
+        'label_attr': {'class': 'block text-gray-700 font-semibold'},
+        'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm'}
+    }) }}
     
     <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Enregistrer</button>
 
-    <input type="hidden" id="hiddenPersonField" name="hiddenPersonField" value="">
     {{ form_end(form) }}
 
-    <div class="prose whitespace-pre-wrap">
+    <div class="prose whitespace-pre-wrap mt-4">
         {{ song.lyrics ? song.lyrics|nl2br|raw : 'Pas de paroles disponibles.' }}
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.querySelector('form');
             const artistList = document.getElementById("artistList");
             const addArtistBtn = document.getElementById("addArtist");
             const newPersonInput = document.getElementById("newPerson");
             const addNewArtistBtn = document.getElementById("addNewArtist");
             const selectedArtistsDiv = document.getElementById("selectedArtists");
             const clearArtistsBtn = document.getElementById("clearArtists");
-
-            const hiddenPersonField = document.getElementById("hiddenPersonField");
-
-            function updateHiddenField() {
-                const selectedIds = Array.from(document.querySelectorAll('input[name="song[person][]"]'))
-                    .map(input => input.value);
-                hiddenPersonField.value = selectedIds.join(',');
-            }
-
-            function addArtist(id, name) {
-                if (!document.querySelector(`input[name="song[person][]"][value="${id}"]`)) {
-                    const artistElement = document.createElement("div");
-                    artistElement.classList.add("flex", "items-center", "justify-between", "p-1", "bg-white", "rounded", "shadow", "mt-1");
-                    artistElement.innerHTML = `
-                        <span>${name}</span>
-                        <input type="hidden" name="song[person][]" value="${id}">
-                        <button type="button" class="ml-2 text-red-500 removeArtist">✖</button>
-                    `;
-                    selectedArtistsDiv.appendChild(artistElement);
-                    updateHiddenField();
-
-                    artistElement.querySelector(".removeArtist").addEventListener("click", function () {
-                        artistElement.remove();
-                        updateHiddenField();
-                    });
-                }
-            }
-
-            addArtistBtn.addEventListener("click", function () {
+            
+            const createArtistElement = (label, hiddenName, hiddenValue) => {
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("flex", "items-center", "justify-between", "p-2", "bg-white", "rounded", "shadow-sm", "border");
+                wrapper.innerHTML = `
+                    <span class="flex-1">${label}</span>
+                    <input type="hidden" name="song[${hiddenName}][]" value="${hiddenValue}">
+                    <button type="button" class="ml-2 text-red-500 hover:text-red-700 removeArtist">✖</button>
+                `;
+                wrapper.querySelector(".removeArtist").addEventListener("click", () => wrapper.remove());
+                return wrapper;
+            };
+            
+            addArtistBtn.addEventListener("click", () => {
                 const selectedOption = artistList.options[artistList.selectedIndex];
-                if (selectedOption.value) {
-                    addArtist(selectedOption.value, selectedOption.text);
+                if (!selectedOption.value) return;
+            
+                const id = selectedOption.value;
+                const name = selectedOption.text;
+                
+                // Check if already added
+                if (!document.querySelector(`input[name="song[existingPersons][]"][value="${id}"]`)) {
+                    const element = createArtistElement(name, "existingPersons", id);
+                    selectedArtistsDiv.appendChild(element);
+                    artistList.selectedIndex = 0;
+                } else {
+                    alert('Cet artiste a déjà été ajouté');
                 }
             });
-
-            addNewArtistBtn.addEventListener("click", function () {
-                const newArtistName = newPersonInput.value.trim();
-                if (newArtistName) {
-                    const tempId = "new_" + newArtistName;
-                    addArtist(tempId, newArtistName);
-                    newPersonInput.value = "";
-                }
-            });
-
+        
             addNewArtistBtn.addEventListener("click", () => {
                 const name = newPersonInput.value.trim();
                 if (!name) return;
                 
                 // Check if already added (case-insensitive)
-                const existing = Array.from(document.querySelectorAll('#selectedArtists span'))
-                    .some(span => span.textContent.toLowerCase() === name.toLowerCase());
+                const existing = Array.from(document.querySelectorAll('#selectedArtists input[name^="song[newPersons]"], #selectedArtists input[name^="song[existingPersons]"]'))
+                    .some(input => {
+                        const inputName = input.name.includes('newPersons') 
+                            ? input.value 
+                            : Array.from(artistList.options).find(opt => opt.value === input.value)?.text;
+                        return inputName && inputName.toLowerCase() === name.toLowerCase();
+                    });
                 
                 if (!existing) {
                     const element = createArtistElement(name, "newPersons", name);
@@ -126,18 +126,18 @@
                     alert('Cet artiste a déjà été ajouté');
                 }
             });
-
-            clearArtistsBtn.addEventListener("click", function () {
+        
+            clearArtistsBtn.addEventListener("click", () => {
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
-                updateHiddenField();
             });
 
-            // Loop through each preloaded artist from songArtists
-            const artistElements = document.querySelectorAll('.artistsData');
-            artistElements.forEach(artistElement => {
-                const artistId = artistElement.getAttribute('data-artist-id');
-                const artistName = artistElement.getAttribute('data-artist-name');
-                addArtist(artistId, artistName);
+            // Handle form submission to prevent empty artist lists
+            form.addEventListener('submit', (e) => {
+                const hasArtists = document.querySelectorAll('#selectedArtists input[type="hidden"]').length > 0;
+                if (!hasArtists) {
+                    e.preventDefault();
+                    alert('Veuillez ajouter au moins un artiste');
+                }
             });
         });
     </script>

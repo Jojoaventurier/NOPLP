@@ -24,7 +24,7 @@
 
     <div class="mb-4">
         <label for="newPerson" class="block font-semibold">Ajouter un nouvel interprète</label>
-        <input type="text" id="newPerson" name="newPerson" class="w-full p-2 border rounded" placeholder="Nom de l'artiste">
+        <input type="text" id="newPerson" class="w-full p-2 border rounded" placeholder="Nom de l'artiste">
         <button type="button" id="addNewArtist" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ajouter</button>
     </div>
 
@@ -44,6 +44,12 @@
     {{ form_row(form.userSongKnowledge, {
         'label_attr': {'class': 'block text-gray-700 font-semibold'},
         'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500'}
+    }) }}
+
+    {{ form_row(form.lyricsFile, {
+        'label': 'Fichier de paroles (TXT)',
+        'label_attr': {'class': 'block text-gray-700 font-semibold'},
+        'attr': {'class': 'w-full mt-1 p-2 border border-gray-300 rounded shadow-sm'}
     }) }}
 
     <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Enregistrer</button>
@@ -79,10 +85,13 @@
                 const id = selectedOption.value;
                 const name = selectedOption.text;
                 
+                // Check if already added
                 if (!document.querySelector(`input[name="song[existingPersons][]"][value="${id}"]`)) {
                     const element = createArtistElement(name, "existingPersons", id);
                     selectedArtistsDiv.appendChild(element);
                     artistList.selectedIndex = 0;
+                } else {
+                    alert('Cet artiste a déjà été ajouté');
                 }
             });
         
@@ -90,20 +99,14 @@
                 const name = newPersonInput.value.trim();
                 if (!name) return;
                 
-                if (!document.querySelector(`input[name="song[newPersons][]"][value="${name}"]`)) {
-                    const element = createArtistElement(name, "newPersons", name);
-                    selectedArtistsDiv.appendChild(element);
-                    newPersonInput.value = "";
-                }
-            });
-
-            addNewArtistBtn.addEventListener("click", () => {
-                const name = newPersonInput.value.trim();
-                if (!name) return;
-                
                 // Check if already added (case-insensitive)
-                const existing = Array.from(document.querySelectorAll('#selectedArtists span'))
-                    .some(span => span.textContent.toLowerCase() === name.toLowerCase());
+                const existing = Array.from(document.querySelectorAll('#selectedArtists input[name^="song[newPersons]"], #selectedArtists input[name^="song[existingPersons]"]'))
+                    .some(input => {
+                        const inputName = input.name.includes('newPersons') 
+                            ? input.value 
+                            : Array.from(artistList.options).find(opt => opt.value === input.value)?.text;
+                        return inputName && inputName.toLowerCase() === name.toLowerCase();
+                    });
                 
                 if (!existing) {
                     const element = createArtistElement(name, "newPersons", name);
@@ -118,6 +121,14 @@
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
             });
         
+            // Handle form submission to prevent empty artist lists
+            form.addEventListener('submit', (e) => {
+                const hasArtists = document.querySelectorAll('#selectedArtists input[type="hidden"]').length > 0;
+                if (!hasArtists) {
+                    e.preventDefault();
+                    alert('Veuillez ajouter au moins un artiste');
+                }
+            });
         });
     </script>
 {% endblock %}
