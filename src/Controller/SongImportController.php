@@ -19,36 +19,36 @@ final class SongImportController extends AbstractController
     public function import(Request $request, EntityManagerInterface $em): Response
     {
         $file = $request->files->get('excel_file');
-
+    
         if (!$file) {
             $this->addFlash('error', 'Aucun fichier fourni');
             return $this->redirectToRoute('app_song');
         }
-
+    
         $spreadsheet = IOFactory::load($file->getPathname());
         $sheet = $spreadsheet->getActiveSheet();
         $rows = $sheet->toArray(null, true, true, true);
-
+    
         $rowCount = 0;
         $lastArtistName = null;
-
+        $existingPersons = []; // Moved outside the loop
+    
         foreach ($rows as $index => $row) {
             if ($index === 1) continue; // Ignore l'en-tête
-
+    
             $artistName = $row['A'] ?? null;
             $title = $row['B'] ?? null;
-
+    
             if (!$artistName && $lastArtistName) {
                 $artistName = $lastArtistName;
             }
-
+    
             if (!$artistName || !$title) continue;
-
+    
             // Nettoyage du nom
             $artistName = trim($artistName);
             $lastArtistName = $artistName; // Stocke pour la prochaine ligne
-            $existingPersons = [];
-
+    
             $downloaded = $row['C'] ?? null;
             $hasLyrics = $row['D'] ?? null;
             $listened = $row['E'] ?? null;
@@ -57,8 +57,7 @@ final class SongImportController extends AbstractController
             $playInfo = strtoupper(trim($row['H'] ?? ''));
             $reviewDate1 = $row['I'] ?? null;
             $reviewDate2 = $row['J'] ?? null;
-
-            // Recherche ou création de l'artiste
+    
             $artistName = trim($artistName); // nettoyage espaces
             if (isset($existingPersons[$artistName])) {
                 $person = $existingPersons[$artistName];
@@ -72,19 +71,19 @@ final class SongImportController extends AbstractController
                 }
                 $existingPersons[$artistName] = $person;
             }
-
+    
             // Recherche ou création de la chanson
             $song = $em->getRepository(Song::class)->findOneBy(['title' => $title]);
             if (!$song) {
                 $song = new Song();
                 $song->setTitle($title);
             }
-
+    
             // Association de l'artiste à la chanson
             if (!$song->getPerson()->contains($person)) {
                 $song->addPerson($person);
             }
-
+    
             if (!empty($downloaded)) {
                 $song->setIsDownloaded(true);
             }
@@ -94,7 +93,7 @@ final class SongImportController extends AbstractController
             if (!empty($listened)) {
                 $song->setIsListened(true);
             }
-
+    
             if (!empty($crossValue)) {
                 $song->setUserSongKnowledge('by_heart');
             } elseif ($userKnowledgeRaw) {
@@ -103,14 +102,14 @@ final class SongImportController extends AbstractController
                     $song->setUserSongKnowledge($mappedKnowledge);
                 }
             }
-
+    
             $normalPlayCount = substr_count($playInfo, 'T');
             $noplpCount = substr_count($playInfo, 'C');
             $song->setNormalPlayCount($normalPlayCount);
             $song->setNoplpCount($noplpCount);
-
+    
             $em->persist($song);
-
+    
             // Création d'un SongReview si date valide
             if ($this->isValidDate($reviewDate1)) {
                 $review = new SongReview();
@@ -123,12 +122,12 @@ final class SongImportController extends AbstractController
                 $review->setReviewedAt(new \DateTimeImmutable($reviewDate2));
                 $em->persist($review);
             }
-
+    
             $rowCount++;
         }
-
+    
         $em->flush();
-
+    
         $this->addFlash('success', "$rowCount chansons importées avec succès.");
         return $this->redirectToRoute('app_song');
     }
