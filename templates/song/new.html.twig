@@ -96,6 +96,23 @@
                     newPersonInput.value = "";
                 }
             });
+
+            addNewArtistBtn.addEventListener("click", () => {
+                const name = newPersonInput.value.trim();
+                if (!name) return;
+                
+                // Check if already added (case-insensitive)
+                const existing = Array.from(document.querySelectorAll('#selectedArtists span'))
+                    .some(span => span.textContent.toLowerCase() === name.toLowerCase());
+                
+                if (!existing) {
+                    const element = createArtistElement(name, "newPersons", name);
+                    selectedArtistsDiv.appendChild(element);
+                    newPersonInput.value = "";
+                } else {
+                    alert('Cet artiste a déjà été ajouté');
+                }
+            });
         
             clearArtistsBtn.addEventListener("click", () => {
                 selectedArtistsDiv.innerHTML = '<p class="text-gray-500 text-sm">Artistes ajoutés :</p>';
