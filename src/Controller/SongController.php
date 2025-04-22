@@ -17,8 +17,8 @@ final class SongController extends AbstractController
     #[Route('/song', name: 'app_song')]
     public function index(SongRepository $songRepository): Response
     {   
-        $songs = $songRepository->findAll();
-
+        $songs = $songRepository->findAllWithDetails();
+        
         return $this->render('song/index.html.twig', [
             'songs' => $songs,
         ]);

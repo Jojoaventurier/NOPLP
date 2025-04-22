@@ -270,4 +270,16 @@ class Song
     return $this->userSongKnowledge === 'by_heart';
 }
 
+private ?\DateTimeInterface $latestReviewDate = null;
+
+public function getLatestReviewDate(): ?\DateTimeInterface
+{
+    return $this->latestReviewDate;
+}
+
+public function setLatestReviewDate(?\DateTimeInterface $date): void
+{
+    $this->latestReviewDate = $date;
+}
+
 }

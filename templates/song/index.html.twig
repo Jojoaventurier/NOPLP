@@ -1,8 +1,76 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}NOPLP - Liste des morceaux{% endblock %}
-
 {% block body %}
+    <div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
+        <!-- ... existing header code ... -->
+
+        {# Filter/Sort Controls #}
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            {# Category Filter #}
+            <div>
+                <label class="block font-medium mb-1">Catégorie</label>
+                <select id="categoryFilter" class="w-full p-2 border rounded">
+                    <option value="all">Toutes catégories</option>
+                    <option value="Femme">Femmes</option>
+                    <option value="Homme">Hommes</option>
+                    <option value="Groupe">Groupes</option>
+                    <option value="Duo">Duos</option>
+                </select>
+            </div>
+
+            {# Year Filter #}
+            {# <div>
+                
+                <label class="block font-medium mb-1">Année</label>
+                <select id="yearFilter" class="w-full p-2 border rounded">
+                    <option value="all">Toutes années</option>
+                    {% set years = [] %}
+                    {% for song in songs %}
+                        {% if song.year and song.year not in years %}
+                            {% set years = years|merge([song.year]) %}
+                            <option value="{{ song.year }}">{{ song.year }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div> #}
+
+            {# Sort Options #}
+            <div>
+                <label class="block font-medium mb-1">Trier par</label>
+                <select id="sortOption" class="w-full p-2 border rounded">
+                    <option value="title_asc">Titre (A-Z)</option>
+                    <option value="title_desc">Titre (Z-A)</option>
+                    <option value="date_asc">Date (ancien)</option>
+                    <option value="date_desc">Date (récent)</option>
+                    <option value="artist_asc">Artiste (A-Z)</option>
+                </select>
+            </div>
+
+            {# Search #}
+            <div>
+                <label class="block font-medium mb-1">Rechercher</label>
+                <input type="text" id="searchInput" placeholder="Titre ou artiste..." class="w-full p-2 border rounded">
+            </div>
+        </div>
+
+        <table class="min-w-full border border-gray-300">
+            <!-- ... existing table headers ... -->
+            <tbody id="songTableBody">
+                {% for song in songs %}
+                    <tr class="song-row border hover:bg-gray-100" 
+                        data-categories="{{ song.person|map(p => p.category)|join(',') }}"
+                        data-year="{{ song.year ?? '' }}"
+                        data-title="{{ song.title|lower }}"
+                        data-artist="{{ song.person|map(p => p.name)|join(',')|lower }}"
+                        data-date="{{ song.latestReviewDate ? song.latestReviewDate.timestamp : 0 }}"
+                        <!-- ... existing song columns ... -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
     <div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">🎶 Liste des morceaux</h1>
         <div class="flex justify-center">
@@ -85,4 +153,74 @@
             <p class="text-gray-500 text-center mt-4">Aucun morceau trouvé.</p>
         {% endif %}
     </div>
+
+
+    {# <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryFilter = document.getElementById('categoryFilter');
+            const yearFilter = document.getElementById('yearFilter');
+            const sortOption = document.getElementById('sortOption');
+            const searchInput = document.getElementById('searchInput');
+            const songRows = Array.from(document.querySelectorAll('.song-row'));
+            
+            // Store original order for resetting
+            const originalOrder = [...songRows];
+            
+            function applyFilters() {
+                const category = categoryFilter.value;
+                const year = yearFilter.value;
+                const searchTerm = searchInput.value.toLowerCase();
+                const sortValue = sortOption.value;
+                
+                // Filter rows
+                songRows.forEach(row => {
+                    const matchesCategory = category === 'all' || 
+                        row.dataset.categories.includes(category);
+                    const matchesYear = year === 'all' || 
+                        row.dataset.year === year;
+                    const matchesSearch = searchTerm === '' ||
+                        row.dataset.title.includes(searchTerm) || 
+                        row.dataset.artist.includes(searchTerm);
+                    
+                    row.style.display = (matchesCategory && matchesYear && matchesSearch) ? 
+                        '' : 'none';
+                });
+                
+                // Sort rows
+                const visibleRows = songRows.filter(row => row.style.display !== 'none');
+                
+                visibleRows.sort((a, b) => {
+                    switch(sortValue) {
+                        case 'title_asc':
+                            return a.dataset.title.localeCompare(b.dataset.title);
+                        case 'title_desc':
+                            return b.dataset.title.localeCompare(a.dataset.title);
+                        case 'date_asc':
+                            return parseInt(a.dataset.date) - parseInt(b.dataset.date);
+                        case 'date_desc':
+                            return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+                        case 'artist_asc':
+                            return a.dataset.artist.localeCompare(b.dataset.artist);
+                        default:
+                            return 0;
+                    }
+                });
+                
+                // Re-append sorted rows
+                const tbody = document.getElementById('songTableBody');
+                tbody.innerHTML = '';
+                visibleRows.forEach(row => tbody.appendChild(row));
+            }
+            
+            // Add event listeners
+            [categoryFilter, yearFilter, sortOption, searchInput].forEach(element => {
+                element.addEventListener('change', applyFilters);
+            });
+            
+            searchInput.addEventListener('input', applyFilters);
+            
+            // Initial filter
+            applyFilters();
+        });
+    </script> #}
 {% endblock %}
