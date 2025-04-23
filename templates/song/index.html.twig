@@ -1,221 +1,190 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
-
-        {# Filter/Sort Controls #}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {# Category Filter #}
+<div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">🎶 Liste des morceaux</h1>
+    
+    <div class="flex justify-center mb-6">
+        <a href="{{ path('app_song_new') }}" class="border p-2 rounded">
+            Ajouter un morceau
+        </a>
+    </div>
+    <div>
+        <h2 class="text-xl font-bold mb-4">Importer un fichier Excel</h2>
+    
+        <form action="{{ path('import_songs') }}" method="post" enctype="multipart/form-data" class="space-y-4">
             <div>
-                <label class="block font-medium mb-1">Catégorie</label>
-                <select id="categoryFilter" class="w-full p-2 border rounded">
-                    <option value="all">Toutes catégories</option>
-                    <option value="Femme">Femmes</option>
-                    <option value="Homme">Hommes</option>
-                    <option value="Groupe">Groupes</option>
-                    <option value="Duo">Duos</option>
-                </select>
+                <label for="excel_file" class="block font-medium">Choisissez un fichier Excel :</label>
+                <input type="file" name="excel_file" id="excel_file" accept=".xlsx,.xls" required class="mt-1 border p-2 rounded w-full" />
             </div>
-
-            {# Year Filter #}
-            {# <div>
-                
-                <label class="block font-medium mb-1">Année</label>
-                <select id="yearFilter" class="w-full p-2 border rounded">
-                    <option value="all">Toutes années</option>
-                    {% set years = [] %}
-                    {% for song in songs %}
-                        {% if song.year and song.year not in years %}
-                            {% set years = years|merge([song.year]) %}
-                            <option value="{{ song.year }}">{{ song.year }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div> #}
-
-            {# Sort Options #}
-            <div>
-                <label class="block font-medium mb-1">Trier par</label>
-                <select id="sortOption" class="w-full p-2 border rounded">
-                    <option value="title_asc">Titre (A-Z)</option>
-                    <option value="title_desc">Titre (Z-A)</option>
-                    <option value="date_asc">Date (ancien)</option>
-                    <option value="date_desc">Date (récent)</option>
-                    <option value="artist_asc">Artiste (A-Z)</option>
-                </select>
-            </div>
-
-            {# Search #}
-            <div>
-                <label class="block font-medium mb-1">Rechercher</label>
-                <input type="text" id="searchInput" placeholder="Titre ou artiste..." class="w-full p-2 border rounded">
-            </div>
-        </div>
-
-        <table class="min-w-full border border-gray-300">
-            <!-- ... existing table headers ... -->
-            <tbody id="songTableBody">
-                {% for song in songs %}
-                    <tr class="song-row border hover:bg-gray-100" 
-                        data-categories="{{ song.person|map(p => p.category)|join(',') }}"
-                        data-year="{{ song.year ?? '' }}"
-                        data-title="{{ song.title|lower }}"
-                        data-artist="{{ song.person|map(p => p.name)|join(',')|lower }}"
-                        data-date="{{ song.latestReviewDate ? song.latestReviewDate.timestamp : 0 }}"
-                        <!-- ... existing song columns ... -->
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                Importer
+            </button>
+        </form>
     </div>
 
-
-    <div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">🎶 Liste des morceaux</h1>
-        <div class="flex justify-center">
-            <a href="{{ path('app_song_new') }}" class="border p-2 rounded mb-4">
-                Ajouter un morceau
-            </a>
-        </div>
-        
+    {# Filtres et tri #}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div>
-            <h2 class="text-xl font-bold mb-4">Importer un fichier Excel</h2>
-
-            <form action="{{ path('import_songs') }}" method="post" enctype="multipart/form-data" class="space-y-4">
-                <div>
-                    <label for="excel_file" class="block font-medium">Choisissez un fichier Excel :</label>
-                    <input type="file" name="excel_file" id="excel_file" accept=".xlsx,.xls" required class="mt-1 border p-2 rounded w-full" />
-                </div>
-                
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                    Importer
-                </button>
-            </form>
+            <label class="block font-medium mb-1">Catégorie</label>
+            <select id="categoryFilter" class="w-full p-2 border rounded">
+                <option value="all">Toutes catégories</option>
+                <option value="Femme">Femmes</option>
+                <option value="Homme">Hommes</option>
+                <option value="Groupe">Groupes</option>
+                <option value="Duo">Duos</option>
+            </select>
         </div>
 
-        {% if songs is not empty %}
-            <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-300">
-                    <thead>
-                        <tr class="bg-gray-200 text-gray-700 uppercase text-sm">
-                            <th class="border px-4 py-2">Titre</th>
-                            <th class="border px-4 py-2">Interprète(s)</th>
-                            {# <th class="border px-4 py-2">Paroles</th> #}
-                            <th class="border px-4 py-2">Téléchargé</th>
-                            <th class="border px-4 py-2">Paroles dispos</th>
-                            <th class="border px-4 py-2">Connaissance</th>
-                            <th class="border px-4 py-2">Modifier</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for song in songs %}
-                            <tr class="border hover:bg-gray-100">
-                                <td class="border px-4 py-2">
-                                    <a href="{{ path('app_song_show', {id: song.id}) }}" 
-                                       class="hover:underline transition">
-                                        {{ song.title ?: 'Non renseigné' }}
-                                    </a>
-                                </td>
-                                <td class="border px-4 py-2">
-                                    {% for person in song.person %}
-                                        {{ person.name }}{% if not loop.last %}, {% endif %}
-                                    {% else %}
-                                        <span class="text-gray-400">Aucun</span>
-                                    {% endfor %}
-                                </td>
-                                {# <td class="border px-4 py-2">{{ song.lyrics ? '✅' : '❌' }}</td> #}
-                                <td class="border px-4 py-2 text-center">{{ song.isDownloaded ? '📥 Oui' : '❌ Non' }}</td>
-                                <td class="border px-4 py-2 text-center">{{ song.hasLyrics ? '📜 Oui' : '❌ Non' }}</td>
-                                <td class="border px-4 py-2">
-                                    🎤 {{ song.userSongKnowledge ? song.userSongKnowledge : 'Non évalué' }}
-                                </td>
-                                <td class="border px-4 py-2 text-center space-x-1">
-                                    <a href="{{ path('app_song_show', {id: song.id}) }}" 
-                                       class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                                        Détails
-                                    </a>
-                                    <a href="{{ path('app_song_edit', {id: song.id}) }}" 
-                                       class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition">
-                                        Modifier
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="text-gray-500 text-center mt-4">Aucun morceau trouvé.</p>
-        {% endif %}
+        {# <div>
+            <label class="block font-medium mb-1">Année</label>
+            <select id="yearFilter" class="w-full p-2 border rounded">
+                <option value="all">Toutes années</option>
+                {% set years = [] %}
+                {% for song in songs %}
+                    {% if song.year and song.year not in years %}
+                        {% set years = years|merge([song.year]) %}
+                        <option value="{{ song.year }}">{{ song.year }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div> #}
+
+        <div>
+            <label class="block font-medium mb-1">Trier par</label>
+            <select id="sortOption" class="w-full p-2 border rounded">
+                <option value="title_asc">Titre (A-Z)</option>
+                <option value="title_desc">Titre (Z-A)</option>
+                <option value="date_asc">Date (ancien)</option>
+                <option value="date_desc">Date (récent)</option>
+                <option value="artist_asc">Artiste (A-Z)</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block font-medium mb-1">Rechercher</label>
+            <input type="text" id="searchInput" placeholder="Titre ou artiste..." class="w-full p-2 border rounded">
+        </div>
     </div>
 
+    {% if songs is not empty %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm">
+                        <th class="border px-4 py-2">Titre</th>
+                        <th class="border px-4 py-2">Interprète(s)</th>
+                        <th class="border px-4 py-2">Téléchargé</th>
+                        <th class="border px-4 py-2">Paroles dispos</th>
+                        <th class="border px-4 py-2">Connaissance</th>
+                        <th class="border px-4 py-2">Modifier</th>
+                    </tr>
+                </thead>
+                <tbody id="songTableBody">
+                    {% for song in songs %}
+                        <tr class="song-row border hover:bg-gray-100"
+                            data-categories="{{ song.person|map(p => p.category)|join(',') }}"
+                            data-year="{{ song.year ?? '' }}"
+                            data-title="{{ song.title|lower }}"
+                            data-artist="{{ song.person|map(p => p.name)|join(',')|lower }}"
+                            data-date="{{ song.latestReviewDate ? song.latestReviewDate.timestamp : 0 }}">
+                            <td class="border px-4 py-2">
+                                <a href="{{ path('app_song_show', {id: song.id}) }}"
+                                   class="hover:underline transition">
+                                    {{ song.title ?: 'Non renseigné' }}
+                                </a>
+                            </td>
+                            <td class="border px-4 py-2">
+                                {% for person in song.person %}
+                                    {{ person.name }}{% if not loop.last %}, {% endif %}
+                                {% else %}
+                                    <span class="text-gray-400">Aucun</span>
+                                {% endfor %}
+                            </td>
+                            <td class="border px-4 py-2 text-center">
+                                {{ song.isDownloaded ? '📥 Oui' : '❌ Non' }}
+                            </td>
+                            <td class="border px-4 py-2 text-center">
+                                {{ song.hasLyrics ? '📜 Oui' : '❌ Non' }}
+                            </td>
+                            <td class="border px-4 py-2">
+                                🎤 {{ song.userSongKnowledge ?: 'Non évalué' }}
+                            </td>
+                            <td class="border px-4 py-2 text-center space-x-1">
+                                <a href="{{ path('app_song_show', {id: song.id}) }}"
+                                   class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                                    Détails
+                                </a>
+                                <a href="{{ path('app_song_edit', {id: song.id}) }}"
+                                   class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition">
+                                    Modifier
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-gray-500 text-center mt-4">Aucun morceau trouvé.</p>
+    {% endif %}
+</div>
 
-    {# <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const categoryFilter = document.getElementById('categoryFilter');
-            const yearFilter = document.getElementById('yearFilter');
-            const sortOption = document.getElementById('sortOption');
-            const searchInput = document.getElementById('searchInput');
-            const songRows = Array.from(document.querySelectorAll('.song-row'));
-            
-            // Store original order for resetting
-            const originalOrder = [...songRows];
-            
-            function applyFilters() {
-                const category = categoryFilter.value;
-                const year = yearFilter.value;
-                const searchTerm = searchInput.value.toLowerCase();
-                const sortValue = sortOption.value;
-                
-                // Filter rows
-                songRows.forEach(row => {
-                    const matchesCategory = category === 'all' || 
-                        row.dataset.categories.includes(category);
-                    const matchesYear = year === 'all' || 
-                        row.dataset.year === year;
-                    const matchesSearch = searchTerm === '' ||
-                        row.dataset.title.includes(searchTerm) || 
-                        row.dataset.artist.includes(searchTerm);
-                    
-                    row.style.display = (matchesCategory && matchesYear && matchesSearch) ? 
-                        '' : 'none';
-                });
-                
-                // Sort rows
-                const visibleRows = songRows.filter(row => row.style.display !== 'none');
-                
-                visibleRows.sort((a, b) => {
-                    switch(sortValue) {
-                        case 'title_asc':
-                            return a.dataset.title.localeCompare(b.dataset.title);
-                        case 'title_desc':
-                            return b.dataset.title.localeCompare(a.dataset.title);
-                        case 'date_asc':
-                            return parseInt(a.dataset.date) - parseInt(b.dataset.date);
-                        case 'date_desc':
-                            return parseInt(b.dataset.date) - parseInt(a.dataset.date);
-                        case 'artist_asc':
-                            return a.dataset.artist.localeCompare(b.dataset.artist);
-                        default:
-                            return 0;
-                    }
-                });
-                
-                // Re-append sorted rows
-                const tbody = document.getElementById('songTableBody');
-                tbody.innerHTML = '';
-                visibleRows.forEach(row => tbody.appendChild(row));
-            }
-            
-            // Add event listeners
-            [categoryFilter, yearFilter, sortOption, searchInput].forEach(element => {
-                element.addEventListener('change', applyFilters);
-            });
-            
-            searchInput.addEventListener('input', applyFilters);
-            
-            // Initial filter
-            applyFilters();
+{# Script de filtres amélioré #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortOption = document.getElementById('sortOption');
+    const searchInput = document.getElementById('searchInput');
+    const yearFilter = document.getElementById('yearFilter'); // optionnel
+    const songRows = Array.from(document.querySelectorAll('.song-row'));
+    const tbody = document.getElementById('songTableBody');
+
+    const originalOrder = [...songRows];
+
+    function applyFilters() {
+        const category = categoryFilter.value;
+        const year = yearFilter ? yearFilter.value : 'all';
+        const searchTerm = searchInput.value.toLowerCase();
+        const sortValue = sortOption.value;
+
+        songRows.forEach(row => {
+            const matchesCategory = category === 'all' || row.dataset.categories.includes(category);
+            const matchesYear = year === 'all' || row.dataset.year === year;
+            const matchesSearch = row.dataset.title.includes(searchTerm) || row.dataset.artist.includes(searchTerm);
+
+            row.style.display = (matchesCategory && matchesYear && matchesSearch) ? '' : 'none';
         });
-    </script> #}
+
+        const visibleRows = songRows.filter(row => row.style.display !== 'none');
+
+        visibleRows.sort((a, b) => {
+            switch(sortValue) {
+                case 'title_asc':
+                    return a.dataset.title.localeCompare(b.dataset.title);
+                case 'title_desc':
+                    return b.dataset.title.localeCompare(a.dataset.title);
+                case 'date_asc':
+                    return parseInt(a.dataset.date) - parseInt(b.dataset.date);
+                case 'date_desc':
+                    return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+                case 'artist_asc':
+                    return a.dataset.artist.localeCompare(b.dataset.artist);
+                default:
+                    return 0;
+            }
+        });
+
+        tbody.innerHTML = '';
+        visibleRows.forEach(row => tbody.appendChild(row));
+    }
+
+    [categoryFilter, sortOption].forEach(el => el.addEventListener('change', applyFilters));
+    if (yearFilter) yearFilter.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    applyFilters();
+});
+</script>
 {% endblock %}
