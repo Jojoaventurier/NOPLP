@@ -79,9 +79,6 @@
         </div>
         
         <div>
-            {# <a href="{{ path('nom_de_ta_page_formulaire') }}" class="text-blue-600 underline">
-                Importer des chansons via Excel
-            </a> #}
             <h2 class="text-xl font-bold mb-4">Importer un fichier Excel</h2>
 
             <form action="{{ path('import_songs') }}" method="post" enctype="multipart/form-data" class="space-y-4">
@@ -95,7 +92,6 @@
                 </button>
             </form>
         </div>
-
 
         {% if songs is not empty %}
             <div class="overflow-x-auto">
