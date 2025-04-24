@@ -14,10 +14,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 final class PersonController extends AbstractController
 {
     #[Route('/person', name: 'app_person')]
-    public function index(): Response
+    public function index(PersonRepository $personRepository): Response
     {
+        $persons = $personRepository->findAll(); // ou trier si besoin
         return $this->render('person/index.html.twig', [
-            'controller_name' => 'PersonController',
+            'persons' => $persons,
         ]);
     }
 
