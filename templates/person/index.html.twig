@@ -1,20 +1,98 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello PersonController!{% endblock %}
-
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+<div class="max-w-5xl mx-auto p-6 bg-white rounded-lg">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">🎤 Liste des artistes</h1>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+            <label for="categoryFilter" class="block mb-1 font-medium">Catégorie</label>
+            <select id="categoryFilter" class="w-full border p-2 rounded">
+                <option value="all">Toutes catégories</option>
+                <option value="Femme">Femmes</option>
+                <option value="Homme">Hommes</option>
+                <option value="Groupe">Groupes</option>
+            </select>
+        </div>
+        <div>
+            <label for="searchInput" class="block mb-1 font-medium">Rechercher</label>
+            <input type="text" id="searchInput" placeholder="Nom de l'artiste..." class="w-full border p-2 rounded">
+        </div>
+        <div>
+            <label for="sortOption" class="block mb-1 font-medium">Trier</label>
+            <select id="sortOption" class="w-full border p-2 rounded">
+                <option value="az">Nom (A-Z)</option>
+                <option value="za">Nom (Z-A)</option>
+            </select>
+        </div>
+    </div>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/laragon/www/NOPLP/src/Controller/PersonController.php</code></li>
-        <li>Your template at <code>C:/laragon/www/NOPLP/templates/person/index.html.twig</code></li>
-    </ul>
+    {% set categories = {'Femme': [], 'Homme': [], 'Groupe': []} %}
+    {% for person in persons %}
+        {% set categories = categories|merge({ (person.category): categories[person.category]|merge([person]) }) %}
+    {% endfor %}
+
+    <div id="artistList">
+        {% for category, people in categories %}
+            <div data-category="{{ category }}" class="mb-8 artist-section">
+                <h2 class="text-2xl font-semibold mb-4">{{ category ~ 's' }}</h2>
+                <ul class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {% for person in people %}
+                        <li class="artist-item border p-3 rounded bg-gray-50 hover:bg-gray-100 transition" data-name="{{ person.name|lower }}">
+                            {{ person.name }}
+                        </li>
+                    {% else %}
+                        <li class="text-gray-400 italic">Aucun artiste dans cette catégorie.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const searchInput = document.getElementById('searchInput');
+    const sortOption = document.getElementById('sortOption');
+    const sections = document.querySelectorAll('.artist-section');
+
+    function applyFilters() {
+        const selectedCategory = categoryFilter.value;
+        const search = searchInput.value.toLowerCase();
+        const sort = sortOption.value;
+
+        sections.forEach(section => {
+            const category = section.dataset.category;
+            const items = Array.from(section.querySelectorAll('.artist-item'));
+
+            let visibleItems = items.filter(item => {
+                const name = item.dataset.name;
+                return (selectedCategory === 'all' || category === selectedCategory) &&
+                       (name.includes(search));
+            });
+
+            // Trier
+            visibleItems.sort((a, b) => {
+                const aName = a.dataset.name;
+                const bName = b.dataset.name;
+                return sort === 'az' ? aName.localeCompare(bName) : bName.localeCompare(aName);
+            });
+
+            const ul = section.querySelector('ul');
+            ul.innerHTML = '';
+            visibleItems.forEach(item => ul.appendChild(item));
+            
+            // Affiche ou masque la section
+            section.style.display = visibleItems.length > 0 ? '' : 'none';
+        });
+    }
+
+    categoryFilter.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+    sortOption.addEventListener('change', applyFilters);
+
+    applyFilters();
+});
+</script>
 {% endblock %}

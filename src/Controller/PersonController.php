@@ -22,5 +22,5 @@ final class PersonController extends AbstractController
         ]);
     }
 
-    
+       
 }
