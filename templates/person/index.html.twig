@@ -4,15 +4,12 @@
 <div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">🎤 Liste des artistes</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div>
-            <label for="categoryFilter" class="block mb-1 font-medium">Catégorie</label>
-            <select id="categoryFilter" class="w-full border p-2 rounded">
-                <option value="all">Toutes catégories</option>
-                <option value="Femme">Femmes</option>
-                <option value="Homme">Hommes</option>
-                <option value="Groupe">Groupes</option>
-            </select>
+    <div class="mb-6">
+        <div class="flex space-x-4 mb-4">
+            <button id="allButton" class="category-button px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Toutes catégories</button>
+            <button id="femmeButton" class="category-button px-4 py-2 rounded bg-pink-200 hover:bg-pink-300">Femmes</button>
+            <button id="hommeButton" class="category-button px-4 py-2 rounded bg-blue-200 hover:bg-blue-300">Hommes</button>
+            <button id="groupeButton" class="category-button px-4 py-2 rounded bg-green-200 hover:bg-green-300">Groupes</button>
         </div>
         <div>
             <label for="searchInput" class="block mb-1 font-medium">Rechercher</label>
@@ -66,48 +63,96 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const categoryFilter = document.getElementById('categoryFilter');
-    const searchInput = document.getElementById('searchInput');
-    const sortOption = document.getElementById('sortOption');
-    const sections = document.querySelectorAll('.artist-section');
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInput');
+        const sortOption = document.getElementById('sortOption');
+        const sections = document.querySelectorAll('.artist-section');
+        let selectedCategory = 'all';  // Default to 'all'
+    
+        // Apply filters
+        function applyFilters() {
+            const search = searchInput.value.toLowerCase();
+            const sort = sortOption.value;
 
-    function applyFilters() {
-        const selectedCategory = categoryFilter.value;
-        const search = searchInput.value.toLowerCase();
-        const sort = sortOption.value;
-
-        sections.forEach(section => {
-            const category = section.dataset.category;
-            const items = Array.from(section.querySelectorAll('.artist-item'));
-
-            let visibleItems = items.filter(item => {
-                const name = item.querySelector('a').dataset.name;
-                return (selectedCategory === 'all' || category === selectedCategory) &&
-                       (name.includes(search));
+            // Update active button state
+            document.querySelectorAll('.category-button').forEach(btn => {
+                btn.classList.remove('bg-gray-300', 'bg-pink-300', 'bg-blue-300', 'bg-green-300');
+                const btnCategory = btn.id.replace('Button', '');
+                if ((btnCategory === 'all' && selectedCategory === 'all') || 
+                    (btnCategory === 'femme' && selectedCategory === 'Femme') ||
+                    (btnCategory === 'homme' && selectedCategory === 'Homme') ||
+                    (btnCategory === 'groupe' && selectedCategory === 'Groupe')) {
+                    btn.classList.add(btn.classList.contains('bg-pink-200') ? 'bg-pink-300' :
+                                    btn.classList.contains('bg-blue-200') ? 'bg-blue-300' :
+                                    btn.classList.contains('bg-green-200') ? 'bg-green-300' : 'bg-gray-300');
+                }
             });
-
-            // Trier
-            visibleItems.sort((a, b) => {
-                const aName = a.querySelector('a').dataset.name;
-                const bName = b.querySelector('a').dataset.name;
-                return sort === 'az' ? aName.localeCompare(bName) : bName.localeCompare(aName);
+    
+            sections.forEach(section => {
+                const category = section.dataset.category;
+                const items = Array.from(section.querySelectorAll('.artist-item'));
+    
+                let visibleItems = items.filter(item => {
+                    const name = item.querySelector('a').dataset.name;
+                    return (selectedCategory === 'all' || category === selectedCategory) &&
+                           (name.includes(search));
+                });
+    
+                // Sort items
+                visibleItems.sort((a, b) => {
+                    const aName = a.querySelector('a').dataset.name;
+                    const bName = b.querySelector('a').dataset.name;
+                    return sort === 'az' ? aName.localeCompare(bName) : bName.localeCompare(aName);
+                });
+    
+                const ul = section.querySelector('ul');
+                ul.innerHTML = '';  // Clear the existing list
+                
+                // Rebuild the list with alphabetical separators
+                let currentLetter = '';
+                visibleItems.forEach(item => {
+                    const name = item.querySelector('a').dataset.name;
+                    const firstLetter = name.charAt(0).toUpperCase();
+                    
+                    if (firstLetter !== currentLetter) {
+                        currentLetter = firstLetter;
+                        const letterSeparator = document.createElement('li');
+                        letterSeparator.className = 'col-span-4 text-4xl font-bold text-gray-800 text-center mt-8';
+                        letterSeparator.textContent = firstLetter;
+                        ul.appendChild(letterSeparator);
+                    }
+                    
+                    ul.appendChild(item);
+                });
+                
+                // Show or hide the section based on visible items
+                section.style.display = visibleItems.length > 0 ? '' : 'none';
             });
-
-            const ul = section.querySelector('ul');
-            ul.innerHTML = '';
-            visibleItems.forEach(item => ul.appendChild(item));
-            
-            // Affiche ou masque la section
-            section.style.display = visibleItems.length > 0 ? '' : 'none';
+        }
+    
+        // Category filter buttons
+        document.querySelectorAll('.category-button').forEach(button => {
+            button.addEventListener('click', function () {
+                // Get category name from button id and map to the correct value
+                selectedCategory = button.id.replace('Button', '');
+                if (selectedCategory === 'all') {
+                    selectedCategory = 'all';
+                } else if (selectedCategory === 'femme') {
+                    selectedCategory = 'Femme';
+                } else if (selectedCategory === 'homme') {
+                    selectedCategory = 'Homme';
+                } else if (selectedCategory === 'groupe') {
+                    selectedCategory = 'Groupe';
+                }
+                applyFilters();
+            });
         });
-    }
-
-    categoryFilter.addEventListener('change', applyFilters);
-    searchInput.addEventListener('input', applyFilters);
-    sortOption.addEventListener('change', applyFilters);
-
-    applyFilters();
-});
+    
+        // Search and sort inputs
+        searchInput.addEventListener('input', applyFilters);
+        sortOption.addEventListener('change', applyFilters);
+    
+        applyFilters();  // Initial filter
+    });
 </script>
 {% endblock %}
