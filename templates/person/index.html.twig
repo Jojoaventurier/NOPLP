@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<div class="max-w-5xl mx-auto p-6 bg-white rounded-lg">
+<div class="max-w-6xl mx-auto p-6 bg-white rounded-lg">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">🎤 Liste des artistes</h1>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -36,13 +36,26 @@
         {% for category, people in categories %}
             <div data-category="{{ category }}" class="mb-8 artist-section">
                 <h2 class="text-2xl font-semibold mb-4">{{ category ~ 's' }}</h2>
-                <ul class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {% for person in people %}
-                            <li class="artist-item border p-3 rounded bg-gray-50 hover:bg-gray-100 transition hover:underline" data-name="{{ person.name|lower }}">
-                                <a href="{{ path('app_person_show', {id: person.id}) }}">
-                                {{ person.name }}
-                                </a>   
-                            </li>
+                        {% set badgeColor = {
+                            'Femme': 'bg-pink-500',
+                            'Homme': 'bg-blue-500',
+                            'Groupe': 'bg-green-500'
+                        }[person.category] %}
+                        
+                        <li class="artist-item">
+                            <a href="{{ path('app_person_show', {id: person.id}) }}" 
+                               class="block border p-4 rounded bg-gray-50 hover:bg-gray-100 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg text-center font-semibold text-gray-800 relative" 
+                               data-name="{{ person.name|lower }}">
+                                <span class="absolute top-2 left-2 text-white text-xs px-2 py-1 rounded {{ badgeColor }}">
+                                    {{ person.category }}
+                                </span>
+                                <div class="mt-4">
+                                    {{ person.name }}
+                                </div>
+                            </a>
+                        </li>
                     {% else %}
                         <li class="text-gray-400 italic">Aucun artiste dans cette catégorie.</li>
                     {% endfor %}
@@ -69,15 +82,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const items = Array.from(section.querySelectorAll('.artist-item'));
 
             let visibleItems = items.filter(item => {
-                const name = item.dataset.name;
+                const name = item.querySelector('a').dataset.name;
                 return (selectedCategory === 'all' || category === selectedCategory) &&
                        (name.includes(search));
             });
 
             // Trier
             visibleItems.sort((a, b) => {
-                const aName = a.dataset.name;
-                const bName = b.dataset.name;
+                const aName = a.querySelector('a').dataset.name;
+                const bName = b.querySelector('a').dataset.name;
                 return sort === 'az' ? aName.localeCompare(bName) : bName.localeCompare(aName);
             });
 
