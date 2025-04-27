@@ -3,42 +3,74 @@
 {% block title %}{{ person.name }}{% endblock %}
 
 {% block body %}
-    <div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8">
 
-        <a href="{{ path('app_person') }}" class="inline-block mb-6 text-blue-600 hover:underline">
-            ← Retour à la liste des artistes
-        </a>
+    <a href="{{ path('app_person') }}" class="inline-block mb-6 text-blue-600 hover:underline">
+        ← Retour à la liste des artistes
+    </a>
 
-        <h1 class="text-4xl font-bold mb-8">{{ person.name }}</h1>
+    <h1 class="text-4xl font-bold mb-8">{{ person.name }}</h1>
 
-        <h2 class="text-2xl font-semibold mb-6">Morceaux interprétés :</h2>
-
-        {% if person.songs|length > 0 %}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% for song in person.songs %}
-                    <div class="bg-white rounded-xl shadow-md p-6 hover:bg-gray-50 transition">
-                        <h3 class="text-xl font-bold mb-2">{{ song.title }}</h3>
-
-                        <div class="text-gray-600 text-sm">
-                            {% set otherArtists = song.person|filter(a => a.id != person.id) %}
-
-                            {% if otherArtists|length > 0 %}
-                                Avec
-                                {% for artist in otherArtists %}
-                                    <a href="{{ path('app_person_show', {id: artist.id}) }}" class="text-blue-500 hover:underline">
-                                        {{ artist.name }}
-                                    </a>{% if not loop.last %}, {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                <span class="italic text-gray-400">(Artiste solo)</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="text-gray-600 italic">Aucun morceau trouvé pour cet artiste.</p>
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-semibold">Morceaux interprétés</h2>
+        {% if person.songs|length > 1 %}
+            <select id="sortSongs" class="border p-1 rounded text-sm">
+                <option value="az">Ordre alphabétique (A-Z)</option>
+                <option value="za">Ordre inverse (Z-A)</option>
+            </select>
         {% endif %}
-
     </div>
+
+    {% if person.songs|length > 0 %}
+        <ul id="songList" class="space-y-2">
+            {% for song in person.songs %}
+                <li class="flex items-center gap-2 text-gray-700">
+                    <a href="{{ path('app_song_show', {id: song.id}) }}" class="hover:underline text-blue-600 song-title">
+                        {{ song.title }}
+                    </a>
+
+                    {% set otherArtists = song.person|filter(a => a.id != person.id) %}
+                    {% if otherArtists|length > 0 %}
+                        <span class="text-sm text-gray-500">
+                            (avec
+                            {% for artist in otherArtists %}
+                                <a href="{{ path('app_person_show', {id: artist.id}) }}" class="hover:underline text-blue-500">
+                                    {{ artist.name }}
+                                </a>{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                            )
+                        </span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-gray-600 italic">Aucun morceau trouvé pour cet artiste.</p>
+    {% endif %}
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sortSelect = document.getElementById('sortSongs');
+    const songList = document.getElementById('songList');
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function () {
+            const items = Array.from(songList.querySelectorAll('li'));
+            items.sort((a, b) => {
+                const titleA = a.querySelector('.song-title').textContent.trim().toLowerCase();
+                const titleB = b.querySelector('.song-title').textContent.trim().toLowerCase();
+                return sortSelect.value === 'az'
+                    ? titleA.localeCompare(titleB)
+                    : titleB.localeCompare(titleA);
+            });
+
+            // Réinjecte dans le DOM
+            songList.innerHTML = '';
+            items.forEach(item => songList.appendChild(item));
+        });
+    }
+});
+</script>
 {% endblock %}
