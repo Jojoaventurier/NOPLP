@@ -22,5 +22,15 @@ final class PersonController extends AbstractController
         ]);
     }
 
+    #[Route('/artist/{id}', name: 'app_person_show')]
+    public function show(Person $person): Response
+    {
+        // $person récupère l'entité automatiquement via ParamConverter
+
+        return $this->render('person/show.html.twig', [
+            'person' => $person,
+        ]);
+    }
+
        
 }

@@ -1,17 +1,29 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des personnes{% endblock %}
+{% block title %}{{ person.name }}{% endblock %}
 
 {% block body %}
-    <h1 class="text-2xl font-bold mb-4">Liste des personnes</h1>
+    <h1 class="text-3xl font-bold mb-6">{{ person.name }}</h1>
 
-    <ul class="space-y-2">
-        {% for person in people %}
+    <h2 class="text-2xl font-semibold mb-4">Morceaux interprétés :</h2>
+
+    <ul class="space-y-4">
+        {% for song in person.songs %}
             <li class="p-4 bg-gray-100 rounded-lg shadow hover:bg-gray-200">
-                {{ person.name }} {# adapte avec le vrai nom du champ de ton entité #}
+                <div class="text-xl font-semibold">{{ song.title }}</div>
+                <div class="text-sm text-gray-600">
+                    Avec :
+                    {% for artist in song.artists %}
+                        {% if artist.id != person.id %}
+                            {{ artist.name }}{% if not loop.last %}, {% endif %}
+                        {% endif %}
+                    {% else %}
+                        (Artiste solo)
+                    {% endfor %}
+                </div>
             </li>
         {% else %}
-            <li>Aucune personne enregistrée.</li>
+            <li>Aucun morceau trouvé pour cet artiste.</li>
         {% endfor %}
     </ul>
 {% endblock %}
