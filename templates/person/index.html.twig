@@ -45,6 +45,12 @@
                             'Groupe': 'border-green-200'
                         }[person.category] %}
 
+                        {% set firstLetter = person.name|lower|slice(0, 1) %}
+                        {% if firstLetter != currentLetter %}
+                            {% set currentLetter = firstLetter %}
+                            <li class="col-span-4 text-4xl font-bold text-gray-800 text-center mt-8">{{ firstLetter|upper }}</li>
+                        {% endif %}
+
                         <li class="artist-item">
                             <a href="{{ path('app_person_show', {id: person.id}) }}" 
                                class="block border-2 {{ borderColor }} p-6 rounded-lg hover:border-2 hover:border-opacity-50 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-md text-center font-semibold text-gray-800" 
