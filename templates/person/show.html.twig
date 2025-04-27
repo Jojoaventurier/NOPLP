@@ -3,27 +3,42 @@
 {% block title %}{{ person.name }}{% endblock %}
 
 {% block body %}
-    <h1 class="text-3xl font-bold mb-6">{{ person.name }}</h1>
+    <div class="container mx-auto px-4 py-8">
 
-    <h2 class="text-2xl font-semibold mb-4">Morceaux interprétés :</h2>
+        <a href="{{ path('app_person_list') }}" class="inline-block mb-6 text-blue-600 hover:underline">
+            ← Retour à la liste des artistes
+        </a>
 
-    <ul class="space-y-4">
-        {% for song in person.songs %}
-            <li class="p-4 bg-gray-100 rounded-lg shadow hover:bg-gray-200">
-                <div class="text-xl font-semibold">{{ song.title }}</div>
-                <div class="text-sm text-gray-600">
-                    Avec :
-                    {% for artist in song.artists %}
-                        {% if artist.id != person.id %}
-                            {{ artist.name }}{% if not loop.last %}, {% endif %}
-                        {% endif %}
-                    {% else %}
-                        (Artiste solo)
-                    {% endfor %}
-                </div>
-            </li>
+        <h1 class="text-4xl font-bold mb-8">{{ person.name }}</h1>
+
+        <h2 class="text-2xl font-semibold mb-6">Morceaux interprétés :</h2>
+
+        {% if person.songs|length > 0 %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for song in person.songs %}
+                    <div class="bg-white rounded-xl shadow-md p-6 hover:bg-gray-50 transition">
+                        <h3 class="text-xl font-bold mb-2">{{ song.title }}</h3>
+
+                        <div class="text-gray-600 text-sm">
+                            {% set otherArtists = song.artists|filter(a => a.id != person.id) %}
+
+                            {% if otherArtists|length > 0 %}
+                                Avec
+                                {% for artist in otherArtists %}
+                                    <a href="{{ path('app_person_show', {id: artist.id}) }}" class="text-blue-500 hover:underline">
+                                        {{ artist.name }}
+                                    </a>{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <span class="italic text-gray-400">(Artiste solo)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         {% else %}
-            <li>Aucun morceau trouvé pour cet artiste.</li>
-        {% endfor %}
-    </ul>
+            <p class="text-gray-600 italic">Aucun morceau trouvé pour cet artiste.</p>
+        {% endif %}
+
+    </div>
 {% endblock %}
