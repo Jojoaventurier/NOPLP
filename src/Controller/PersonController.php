@@ -17,7 +17,7 @@ final class PersonController extends AbstractController
     public function index(PersonRepository $personRepository): Response
     {
         $persons = $personRepository->findAll(); // ou trier si besoin
-        return $this->render('person/indexBis.html.twig', [
+        return $this->render('person/index.html.twig', [
             'persons' => $persons,
         ]);
     }

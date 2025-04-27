@@ -38,11 +38,11 @@
                 <h2 class="text-2xl font-semibold mb-4">{{ category ~ 's' }}</h2>
                 <ul class="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {% for person in people %}
-                        <a href="{{ path('app_person_show', {id: person.id}) }}">
                             <li class="artist-item border p-3 rounded bg-gray-50 hover:bg-gray-100 transition hover:underline" data-name="{{ person.name|lower }}">
+                                <a href="{{ path('app_person_show', {id: person.id}) }}">
                                 {{ person.name }}
+                                </a>   
                             </li>
-                        </a>
                     {% else %}
                         <li class="text-gray-400 italic">Aucun artiste dans cette catégorie.</li>
                     {% endfor %}
