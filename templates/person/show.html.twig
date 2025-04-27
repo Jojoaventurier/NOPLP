@@ -5,7 +5,7 @@
 {% block body %}
     <div class="container mx-auto px-4 py-8">
 
-        <a href="{{ path('app_person_list') }}" class="inline-block mb-6 text-blue-600 hover:underline">
+        <a href="{{ path('app_person') }}" class="inline-block mb-6 text-blue-600 hover:underline">
             ← Retour à la liste des artistes
         </a>
 
@@ -20,7 +20,7 @@
                         <h3 class="text-xl font-bold mb-2">{{ song.title }}</h3>
 
                         <div class="text-gray-600 text-sm">
-                            {% set otherArtists = song.artists|filter(a => a.id != person.id) %}
+                            {% set otherArtists = song.person|filter(a => a.id != person.id) %}
 
                             {% if otherArtists|length > 0 %}
                                 Avec

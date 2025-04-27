@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des artistes{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold mb-8">Artistes</h1>
+
+        <ul class="space-y-4">
+            {% for person in persons %}
+                <li>
+                    <a href="{{ path('app_person_show', {id: person.id}) }}" class="text-blue-600 hover:underline">
+                        {{ person.name }}
+                    </a>
+                </li>
+            {% else %}
+                <li>Aucun artiste trouvé.</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
